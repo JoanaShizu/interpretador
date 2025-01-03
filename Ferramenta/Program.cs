@@ -6,21 +6,21 @@ class Program
 {
     static void Main(string[] args)
     {
+        // Código fonte a ser analisado (adicione seu código aqui)
+        string code = @"
+            int main(void) {
+                
+                printf(""Resultado: %d"", 8);
+            }
+        ";
+
         try
         {
-            // Código fonte a ser analisado
-            string code = @"
-                int main(void) {
-                    int x = 5 + 3;
-                    printf(""Resultado: %d"", x);
-                }
-            ";
-
-            // Crie o Lexer
+            // Cria o Lexer para gerar os tokens
             var inputStream = new AntlrInputStream(code);
             var lexer = new LangGrammarLexer(inputStream);
 
-            // Exiba os tokens gerados pelo Lexer
+            // Exibe os tokens gerados pelo Lexer
             Console.WriteLine("Tokens:");
             var tokens = new CommonTokenStream(lexer);
             tokens.Fill();
@@ -30,18 +30,16 @@ class Program
             }
             Console.WriteLine();
 
-            // Crie o Parser
+            // Cria o Parser para gerar a árvore sintática
             var parser = new LangGrammarParser(tokens);
-
-            // Gere a árvore sintática
             var tree = parser.programa();
 
-            // Exiba a árvore sintática (opcional)
+            // Exibe a árvore sintática no console
             Console.WriteLine("Árvore Sintática:");
             Console.WriteLine(tree.ToStringTree(parser));
             Console.WriteLine();
 
-            // Use o Listener personalizado para interpretar o código
+            // Usa o Listener personalizado para interpretar o código
             var listener = new LangGrammarCustomListener();
             ParseTreeWalker.Default.Walk(listener, tree);
         }

@@ -54,7 +54,7 @@ pointerDereference: '*' VAR '=' expression;
 
 // Entrada e saída
 in: SCAN '(' FORMAT ',' '&' VAR ')';
-out: PRINT '(' STR (',' expression)* ')';
+out: PRINT '(' STR (',' expression)* ')' EOL;
 getsStmt: GETS '(' VAR ')';
 putsStmt: PUTS '(' VAR ')';
 

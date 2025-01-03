@@ -21,34 +21,39 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
         }
     }
 
-    // Processa chamadas de saída (ex.: printf)
-    public override void ExitOut(LangGrammarParser.OutContext context)
+    // Processa chamadas de função genéricas, incluindo printf
+    public override void ExitFunctionCall(LangGrammarParser.FunctionCallContext context)
     {
-        try
+        // Identifica se a função chamada é "printf"
+        if (context.VAR().GetText() == "printf")
         {
-            // Obtém a string de formato (ex.: "Resultado: %d")
-            string format = context.STR().GetText().Trim('"');
-            List<string> arguments = new List<string>();
-
-            // Processa cada argumento da função printf
-            foreach (var expr in context.expression())
+            Console.WriteLine("Processando printf...");
+            try
             {
-                arguments.Add(EvaluateExpression(expr).ToString());
-            }
+                // Obtém a string de formato
+                string format = context.argumentos().expression(0).GetText().Trim('"');
+                List<string> arguments = new List<string>();
 
-            // Substitui os placeholders (%d) na string de formato pelos valores dos argumentos
-            string output = format;
-            foreach (var arg in arguments)
+                // Processa os argumentos passados para o printf (exceto o primeiro, que é a string de formato)
+                for (int i = 1; i < context.argumentos().expression().Length; i++)
+                {
+                    arguments.Add(EvaluateExpression(context.argumentos().expression(i)).ToString());
+                }
+
+                // Substitui os placeholders (%d) na string pelos argumentos
+                string output = format;
+                foreach (var arg in arguments)
+                {
+                    output = output.ReplaceFirst("%d", arg);
+                }
+
+                // Imprime a saída formatada
+                Console.WriteLine(output);
+            }
+            catch (Exception ex)
             {
-                output = output.ReplaceFirst("%d", arg);
+                Console.WriteLine($"Erro ao processar printf: {ex.Message}");
             }
-
-            // Imprime a saída formatada
-            Console.WriteLine(output);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro ao processar saída: {ex.Message}");
         }
     }
 
@@ -134,4 +139,3 @@ public static class StringExtensions
         return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
     }
 }
-
