@@ -1,39 +1,53 @@
 ﻿using System;
-using System.IO;
 using Antlr4.Runtime;
-using Ferramenta.AST; // Certifique-se de usar o namespace correto para a AST
+using Antlr4.Runtime.Tree;
 
-namespace Ferramenta
+class Program
 {
-    public partial class Program // Adicione "partial" se necessário
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
+        try
         {
-            Console.WriteLine("Digite o caminho do arquivo de entrada:");
-            string filePath = Console.ReadLine();
+            // Código fonte a ser analisado
+            string code = @"
+                int main(void) {
+                    int x = 5 + 3;
+                    printf(""Resultado: %d"", x);
+                }
+            ";
 
-            if (File.Exists(filePath))
+            // Crie o Lexer
+            var inputStream = new AntlrInputStream(code);
+            var lexer = new LangGrammarLexer(inputStream);
+
+            // Exiba os tokens gerados pelo Lexer
+            Console.WriteLine("Tokens:");
+            var tokens = new CommonTokenStream(lexer);
+            tokens.Fill();
+            foreach (var token in tokens.GetTokens())
             {
-                var input = File.ReadAllText(filePath);
-                var inputStream = new AntlrInputStream(input);
-                var lexer = new LangGrammarLexer(inputStream);
-                var tokenStream = new CommonTokenStream(lexer);
-                var parser = new LangGrammarParser(tokenStream);
-
-                // Parse Tree
-                var parseTree = parser.program();
-
-                // AST
-                var visitor = new AstBuilderVisitor();
-                var ast = visitor.Visit(parseTree);
-
-                Console.WriteLine("AST construída com sucesso!");
-                Console.WriteLine(ast); // Certifique-se de que há um método ToString() implementado para exibir a AST
+                Console.WriteLine($"Texto: {token.Text}, Tipo: {lexer.Vocabulary.GetSymbolicName(token.Type)}");
             }
-            else
-            {
-                Console.WriteLine("Arquivo não encontrado.");
-            }
+            Console.WriteLine();
+
+            // Crie o Parser
+            var parser = new LangGrammarParser(tokens);
+
+            // Gere a árvore sintática
+            var tree = parser.programa();
+
+            // Exiba a árvore sintática (opcional)
+            Console.WriteLine("Árvore Sintática:");
+            Console.WriteLine(tree.ToStringTree(parser));
+            Console.WriteLine();
+
+            // Use o Listener personalizado para interpretar o código
+            var listener = new LangGrammarCustomListener();
+            ParseTreeWalker.Default.Walk(listener, tree);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro durante a execução: {ex.Message}");
         }
     }
 }

@@ -1,149 +1,169 @@
 grammar LangGrammar;
 
-program : statement+ ;
+// Regras principais
+programa: cabecalho corpo;
 
-statement
-    : declaration EOL
-    | initialization EOL
-    | control_structure
-    | function_definition
-    | function_call EOL
-    | input_statement EOL
-    | output_statement EOL
-    | preprocessor_directive EOL
-    | return_statement EOL
-    | struct_union_definition
-    | pointer_manipulation EOL
-    ;
+cabecalho: (includeDecl | defineDecl | comentario)*;
 
-// Variable declaration and initialization
-declaration
-    : TYPE VAR
-    | TYPE VAR '[' NUM ']'
-    ;
+includeDecl: INCLUDE LIB EOL;
+defineDecl: DEFINE VAR expression? EOL;
 
-initialization
-    : TYPE VAR '=' expression
-    | TYPE VAR '[' NUM ']' '=' '{' expression_list '}'
-    ;
+corpo: mainFunction (functionDecl | structDecl | unionDecl | comentario)*;
 
-expression
-    : term (( '+' | '-' | '*' | '/' | '%' ) term)*
-    ;
+mainFunction: INT MAIN OPEN_PAREN VOID CLOSE_PAREN bloco;
 
-term
-    : NUM
-    | FLOAT_NUM
-    | CHAR
-    | STRING
-    | VAR
-    | '(' expression ')'
-    ;
+bloco: OPEN_BRACE linhas* CLOSE_BRACE;
 
-expression_list
-    : expression (',' expression)*
-    ;
+linhas: comentario
+      | atrib EOL
+      | arrayDecl EOL
+      | pointerDecl EOL
+      | pointerAssign EOL
+      | pointerDereference EOL
+      | functionCall EOL
+      | structAccess EOL
+      | unionAccess EOL
+      | in EOL
+      | out EOL
+      | getsStmt EOL
+      | putsStmt EOL
+      | decisionFunc
+      | switchCase
+      | loopFunc
+      | doWhileLoop
+      | casting EOL
+      | typeof EOL
+      | ternary EOL
+      | returnStmt EOL;
 
-// Input and Output
-input_statement
-    : 'scanf' '(' STRING ',' '&' VAR ')'
-    ;
+// Regras de comentário
+comentario: COMMENTLINE | COMMENTBLOCK;
 
-output_statement
-    : 'printf' '(' STRING (',' expression)* ')'
-        #Output
-    ;
+// Declarações de variáveis
+atrib: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '=' expression
+     | (INT | FLOAT | CHAR | DOUBLE | VOID) VAR
+     | VAR '=' expression;
 
-// Control structures
-control_structure
-    : if_statement
-    | switch_statement
-    | for_loop
-    | while_loop
-    | do_while_loop
-    ;
+arrayDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '[' NUM ']' ('=' '{' elementosArray '}')?;
+elementosArray: expression (',' expression)*;
 
-if_statement
-    : 'if' '(' expression ')' block ('else' block)?
-    ;
+// Declaração de ponteiros
+pointerDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) '*' VAR;
+pointerAssign: VAR '=' '&' VAR;
+pointerDereference: '*' VAR '=' expression;
 
-switch_statement
-    : 'switch' '(' VAR ')' '{' case_clause* ('default' ':' block)? '}'
-    ;
+// Entrada e saída
+in: SCAN '(' FORMAT ',' '&' VAR ')';
+out: PRINT '(' STR (',' expression)* ')';
+getsStmt: GETS '(' VAR ')';
+putsStmt: PUTS '(' VAR ')';
 
-case_clause
-    : 'case' NUM ':' block
-    ;
+// Declarações de funções
+functionDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '(' parametros? ')' bloco;
 
-for_loop
-    : 'for' '(' initialization EOL expression EOL VAR '=' expression ')' block
-    ;
+// Chamada de funções
+functionCall: VAR '(' argumentos? ')';
+parametros: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR (',' (INT | FLOAT | CHAR | DOUBLE | VOID) VAR)*;
+argumentos: expression (',' expression)*;
 
-while_loop
-    : 'while' '(' expression ')' block
-    ;
+// Declaração de estruturas
+structDecl: STRUCT VAR '{' structFields '}' EOL;
+structFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR EOL)+;
 
-do_while_loop
-    : 'do' block 'while' '(' expression ')'
-    ;
+// Declaração de uniões
+unionDecl: UNION VAR '{' unionFields '}' EOL;
+unionFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR EOL)+;
 
-block
-    : '{' statement* '}'
-    ;
+// Acesso a campos de estruturas e uniões
+structAccess: VAR DOT VAR '=' expression
+            | VAR DOT VAR;
 
-// Functions
-function_definition
-    : TYPE VAR '(' parameter_list? ')' block
-    | 'void' VAR '(' parameter_list? ')' block
-    ;
+unionAccess: VAR DOT VAR '=' expression
+           | VAR DOT VAR;
 
-parameter_list
-    : TYPE VAR (',' TYPE VAR)*
-    ;
+// Controle de fluxo
+decisionFunc: IF '(' exprbloco ')' bloco | IF '(' exprbloco ')' bloco ELSE bloco;
+switchCase: SWITCH '(' VAR ')' '{' caseBlock+ defaultBlock? '}';
+caseBlock: CASE NUM ':' linhas* BREAK EOL;
+defaultBlock: DEFAULT ':' linhas* BREAK EOL;
 
-function_call
-    : VAR '(' argument_list? ')'
-    ;
+loopFunc: WHILE '(' exprbloco ')' bloco | FOR '(' atrib EOL exprbloco EOL atrib ')' bloco;
+doWhileLoop: DO bloco WHILE '(' exprbloco ')' EOL;
 
-argument_list
-    : expression_list
-    ;
+// Expressões
+expression: terminais ('+' terminais | '-' terminais)*;
+terminais: fator ('*' fator | '/' fator | '%' fator)*;
+fator: '(' expression ')' | NUM | VAR | STR | CHAR | VAR SOMA SOMA | VAR SUB SUB;
 
-return_statement
-    : 'return' expression?
-    ;
+// Expressões condicionais
+exprbloco: expression (RELOP expression)?
+         | exprbloco AND exprbloco
+         | exprbloco OR exprbloco
+         | NOT exprbloco;
 
-// Pointers
-pointer_manipulation
-    : TYPE '*' VAR
-    | VAR '=' '&' VAR
-    | '*' VAR '=' expression
-    ;
+// Casting e typeof
+casting: '(' (INT | FLOAT | CHAR | DOUBLE | VOID) ')' VAR;
+typeof: TYPEOF '(' VAR ')';
 
-// Structs and Unions
-struct_union_definition
-    : 'struct' VAR '{' struct_members '}'
-    | 'union' VAR '{' struct_members '}'
-    ;
+// Operador ternário
+ternary: exprbloco '?' bloco ':' bloco;
 
-struct_members
-    : (TYPE VAR EOL)+
-    ;
-
-// Preprocessor Directives
-preprocessor_directive
-    : '#include' '<' VAR '>'
-    | '#define' VAR expression
-    ;
+// Retorno
+returnStmt: RETURN expression | RETURN;
 
 // Tokens
-EOL : ';';
-TYPE : 'int' | 'float' | 'char' | 'double' | 'string';
-VAR : [a-zA-Z_][a-zA-Z_0-9]*;
-NUM : [0-9]+;
-FLOAT_NUM : [0-9]+ '.' [0-9]+;
-CHAR : '\'' . '\'';
-STRING : '"' ~["]* '"';
-COMMENT : '//' ~[\r\n]* -> skip;
-BLOCK_COMMENT : '/*' .*? '*/' -> skip;
-WS : [ \t\r\n]+ -> skip;
+INCLUDE: '#include';
+DEFINE: '#define';
+EOL: ';';
+LIB: '<' [a-zA-Z_][a-zA-Z0-9_]* '>';
+COMMENTLINE: '//' ~[\r\n]* -> skip;
+COMMENTBLOCK: '/*' .*? '*/' -> skip;
+
+INT: 'int';
+FLOAT: 'float';
+CHAR: 'char';
+DOUBLE: 'double';
+VOID: 'void';
+MAIN: 'main';
+
+VAR: [_a-zA-Z][_a-zA-Z0-9]*;
+NUM: [0-9]+;
+STR: '"' ~[\n"]* '"';
+FORMAT: '"%' [a-zA-Z] '"';
+
+PLUS: '+';
+MINUS: '-';
+MULT: '*';
+DIV: '/';
+MOD: '%';
+AND: '&&';
+OR: '||';
+NOT: '!';
+RELOP: '==' | '!=' | '<' | '<=' | '>' | '>=';
+SOMA: '++';
+SUB: '--';
+ASSIGN: '=';
+DOT: '.';
+OPEN_PAREN: '(';
+CLOSE_PAREN: ')';
+OPEN_BRACE: '{';
+CLOSE_BRACE: '}';
+VIR: ',';
+RETURN: 'return';
+SCAN: 'scanf';
+PRINT: 'printf';
+GETS: 'gets';
+PUTS: 'puts';
+STRUCT: 'struct';
+UNION: 'union';
+IF: 'if';
+ELSE: 'else';
+SWITCH: 'switch';
+CASE: 'case';
+BREAK: 'break';
+DEFAULT: 'default';
+WHILE: 'while';
+FOR: 'for';
+DO: 'do';
+TYPEOF: 'typeof';
+WS: [ \t\r\n]+ -> skip;
