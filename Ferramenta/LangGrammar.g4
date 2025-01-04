@@ -1,120 +1,127 @@
 grammar LangGrammar;
 
 // Regras principais
-programa: cabecalho corpo;
+programa: cabecalho corpo EOF;
 
 cabecalho: (includeDecl | defineDecl | comentario)*;
 
-includeDecl: INCLUDE LIB EOL;
-defineDecl: DEFINE VAR expression? EOL;
+includeDecl: INCLUDE LIB ';';
+defineDecl: DEFINE VAR expression? ';';
 
 corpo: mainFunction (functionDecl | structDecl | unionDecl | comentario)*;
 
-mainFunction: INT MAIN OPEN_PAREN VOID CLOSE_PAREN bloco;
+mainFunction: INT MAIN '(' (VOID | ) ')' bloco;
 
-bloco: OPEN_BRACE linhas* CLOSE_BRACE;
+bloco: '{' linhas* '}';
 
-linhas: comentario
-      | atrib EOL
-      | arrayDecl EOL
-      | pointerDecl EOL
-      | pointerAssign EOL
-      | pointerDereference EOL
-      | functionCall EOL
-      | structAccess EOL
-      | unionAccess EOL
-      | in EOL
-      | out EOL
-      | getsStmt EOL
-      | putsStmt EOL
-      | decisionFunc
-      | switchCase
-      | loopFunc
-      | doWhileLoop
-      | casting EOL
-      | typeof EOL
-      | ternary EOL
-      | returnStmt EOL;
+linhas
+    : comentario
+    | atrib
+    | arrayDecl
+    | pointerDecl
+    | pointerAssign
+    | pointerDereference
+    | functionCall
+    | structAccess
+    | unionAccess
+    | in
+    | output
+    | getsStmt
+    | putsStmt
+    | decisionFunc
+    | switchCase
+    | loopFunc
+    | doWhileLoop
+    | casting
+    | typeof
+    | ternary
+    | returnStmt
+    ;
 
 // Regras de comentário
 comentario: COMMENTLINE | COMMENTBLOCK;
 
 // Declarações de variáveis
-atrib: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '=' expression
-     | (INT | FLOAT | CHAR | DOUBLE | VOID) VAR
-     | VAR '=' expression;
+atrib: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR ('=' expression)? (';' |) 
+     | VAR '=' expression (';' |);
 
-arrayDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '[' NUM ']' ('=' '{' elementosArray '}')?;
+arrayDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '[' NUM ']' ('=' '{' elementosArray '}')? ';';
 elementosArray: expression (',' expression)*;
 
 // Declaração de ponteiros
-pointerDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) '*' VAR;
-pointerAssign: VAR '=' '&' VAR;
-pointerDereference: '*' VAR '=' expression;
+pointerDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) '*' VAR ';';
+pointerAssign: VAR '=' '&' VAR ';';
+pointerDereference: '*' VAR '=' expression ';';
 
 // Entrada e saída
-in: SCAN '(' FORMAT ',' '&' VAR ')';
-out: PRINT '(' STR (',' expression)* ')' EOL;
-getsStmt: GETS '(' VAR ')';
-putsStmt: PUTS '(' VAR ')';
+in: SCAN '(' FORMAT ',' '&' VAR ')' ';';
+output: PRINT '(' STR (',' expression)* ')' ';';
+
+getsStmt: GETS '(' VAR ')' ';';
+putsStmt: PUTS '(' VAR ')' ';';
 
 // Declarações de funções
 functionDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '(' parametros? ')' bloco;
 
-// Chamada de funções
-functionCall: VAR '(' argumentos? ')';
+functionCall: VAR '(' argumentos? ')' ';';
+
 parametros: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR (',' (INT | FLOAT | CHAR | DOUBLE | VOID) VAR)*;
 argumentos: expression (',' expression)*;
 
 // Declaração de estruturas
-structDecl: STRUCT VAR '{' structFields '}' EOL;
-structFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR EOL)+;
+structDecl: STRUCT VAR '{' structFields '}' ';';
+structFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR ';')+;
 
 // Declaração de uniões
-unionDecl: UNION VAR '{' unionFields '}' EOL;
-unionFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR EOL)+;
+unionDecl: UNION VAR '{' unionFields '}' ';';
+unionFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR ';')+;
 
 // Acesso a campos de estruturas e uniões
-structAccess: VAR DOT VAR '=' expression
-            | VAR DOT VAR;
-
-unionAccess: VAR DOT VAR '=' expression
-           | VAR DOT VAR;
+structAccess: VAR '.' VAR ('=' expression)? ';';
+unionAccess: VAR '.' VAR ('=' expression)? ';';
 
 // Controle de fluxo
-decisionFunc: IF '(' exprbloco ')' bloco | IF '(' exprbloco ')' bloco ELSE bloco;
-switchCase: SWITCH '(' VAR ')' '{' caseBlock+ defaultBlock? '}';
-caseBlock: CASE NUM ':' linhas* BREAK EOL;
-defaultBlock: DEFAULT ':' linhas* BREAK EOL;
+decisionFunc
+    : IF '(' exprbloco ')' bloco (ELSE IF '(' exprbloco ')' bloco)* (ELSE bloco)?;
 
-loopFunc: WHILE '(' exprbloco ')' bloco | FOR '(' atrib EOL exprbloco EOL atrib ')' bloco;
-doWhileLoop: DO bloco WHILE '(' exprbloco ')' EOL;
+switchCase: SWITCH '(' VAR ')' '{' caseBlock+ defaultBlock? '}';
+
+caseBlock: CASE NUM ':' linhas* BREAK ';';
+defaultBlock: DEFAULT ':' linhas* BREAK ';';
+
+loopFunc: whileLoop | forLoop;
+
+whileLoop: WHILE '(' exprbloco ')' bloco;
+forLoop
+    : FOR '(' (atrib | ';') exprbloco? ';' (atrib | expression) ')' bloco
+    ;
+
+doWhileLoop: DO bloco WHILE '(' exprbloco ')' ';';
 
 // Expressões
 expression: terminais ('+' terminais | '-' terminais)*;
 terminais: fator ('*' fator | '/' fator | '%' fator)*;
-fator: '(' expression ')' | NUM | VAR | STR | CHAR | VAR SOMA SOMA | VAR SUB SUB;
+fator: '(' expression ')' | NUM | VAR | STR | CHAR | VAR '++' | VAR '--';
 
 // Expressões condicionais
 exprbloco: expression (RELOP expression)?
-         | exprbloco AND exprbloco
-         | exprbloco OR exprbloco
-         | NOT exprbloco;
+         | exprbloco '&&' exprbloco
+         | exprbloco '||' exprbloco
+         | '!' exprbloco;
 
 // Casting e typeof
-casting: '(' (INT | FLOAT | CHAR | DOUBLE | VOID) ')' VAR;
-typeof: TYPEOF '(' VAR ')';
+casting: '(' (INT | FLOAT | CHAR | DOUBLE | VOID) ')' VAR ';';
+typeof: TYPEOF '(' VAR ')' ';';
 
 // Operador ternário
-ternary: exprbloco '?' bloco ':' bloco;
+ternary: exprbloco '?' expression ':' expression ';';
 
 // Retorno
-returnStmt: RETURN expression | RETURN;
+returnStmt: RETURN expression ';' | RETURN ';';
 
 // Tokens
 INCLUDE: '#include';
 DEFINE: '#define';
-EOL: ';';
 LIB: '<' [a-zA-Z_][a-zA-Z0-9_]* '>';
 COMMENTLINE: '//' ~[\r\n]* -> skip;
 COMMENTBLOCK: '/*' .*? '*/' -> skip;
@@ -126,11 +133,6 @@ DOUBLE: 'double';
 VOID: 'void';
 MAIN: 'main';
 
-VAR: [_a-zA-Z][_a-zA-Z0-9]*;
-NUM: [0-9]+;
-STR: '"' ~[\n"]* '"';
-FORMAT: '"%' [a-zA-Z] '"';
-
 PLUS: '+';
 MINUS: '-';
 MULT: '*';
@@ -140,15 +142,11 @@ AND: '&&';
 OR: '||';
 NOT: '!';
 RELOP: '==' | '!=' | '<' | '<=' | '>' | '>=';
+
 SOMA: '++';
 SUB: '--';
 ASSIGN: '=';
 DOT: '.';
-OPEN_PAREN: '(';
-CLOSE_PAREN: ')';
-OPEN_BRACE: '{';
-CLOSE_BRACE: '}';
-VIR: ',';
 RETURN: 'return';
 SCAN: 'scanf';
 PRINT: 'printf';
@@ -166,4 +164,10 @@ WHILE: 'while';
 FOR: 'for';
 DO: 'do';
 TYPEOF: 'typeof';
+
 WS: [ \t\r\n]+ -> skip;
+
+VAR: [_a-zA-Z][_a-zA-Z0-9]*;
+NUM: [0-9]+;
+STR: '"' ~[\n"]* '"';
+FORMAT: '"%' [a-zA-Z] '"';

@@ -191,15 +191,15 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitIn([NotNull] LangGrammarParser.InContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.out"/>.
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.output"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterOut([NotNull] LangGrammarParser.OutContext context);
+	void EnterOutput([NotNull] LangGrammarParser.OutputContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.out"/>.
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.output"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitOut([NotNull] LangGrammarParser.OutContext context);
+	void ExitOutput([NotNull] LangGrammarParser.OutputContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.getsStmt"/>.
 	/// </summary>
@@ -370,6 +370,26 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitLoopFunc([NotNull] LangGrammarParser.LoopFuncContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.whileLoop"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterWhileLoop([NotNull] LangGrammarParser.WhileLoopContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.whileLoop"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitWhileLoop([NotNull] LangGrammarParser.WhileLoopContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.forLoop"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterForLoop([NotNull] LangGrammarParser.ForLoopContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.forLoop"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitForLoop([NotNull] LangGrammarParser.ForLoopContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.doWhileLoop"/>.
 	/// </summary>

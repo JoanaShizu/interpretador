@@ -1,0 +1,6 @@
+C:\Users\Joana\Downloads\interpretador\Ferramenta\bin\Release\net9.0\win-x64\publish\Ferramenta.exe
+C:\Users\Joana\Downloads\interpretador\Ferramenta\bin\Release\net9.0\win-x64\publish\Ferramenta.dll
+C:\Users\Joana\Downloads\interpretador\Ferramenta\bin\Release\net9.0\win-x64\publish\Ferramenta.deps.json
+C:\Users\Joana\Downloads\interpretador\Ferramenta\bin\Release\net9.0\win-x64\publish\Ferramenta.runtimeconfig.json
+C:\Users\Joana\Downloads\interpretador\Ferramenta\bin\Release\net9.0\win-x64\publish\Ferramenta.pdb
+C:\Users\Joana\Downloads\interpretador\Ferramenta\bin\Release\net9.0\win-x64\publish\Antlr4.Runtime.Standard.dll

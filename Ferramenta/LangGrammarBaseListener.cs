@@ -228,17 +228,17 @@ public partial class LangGrammarBaseListener : ILangGrammarListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitIn([NotNull] LangGrammarParser.InContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.out"/>.
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.output"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterOut([NotNull] LangGrammarParser.OutContext context) { }
+	public virtual void EnterOutput([NotNull] LangGrammarParser.OutputContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.out"/>.
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.output"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitOut([NotNull] LangGrammarParser.OutContext context) { }
+	public virtual void ExitOutput([NotNull] LangGrammarParser.OutputContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.getsStmt"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -443,6 +443,30 @@ public partial class LangGrammarBaseListener : ILangGrammarListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitLoopFunc([NotNull] LangGrammarParser.LoopFuncContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.whileLoop"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterWhileLoop([NotNull] LangGrammarParser.WhileLoopContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.whileLoop"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitWhileLoop([NotNull] LangGrammarParser.WhileLoopContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.forLoop"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterForLoop([NotNull] LangGrammarParser.ForLoopContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.forLoop"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitForLoop([NotNull] LangGrammarParser.ForLoopContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.doWhileLoop"/>.
 	/// <para>The default implementation does nothing.</para>
