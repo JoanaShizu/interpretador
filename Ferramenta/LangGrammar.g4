@@ -101,13 +101,26 @@ doWhileLoop: DO bloco WHILE '(' exprbloco ')' ';';
 // Expressões
 expression: terminais ('+' terminais | '-' terminais)*;
 terminais: fator ('*' fator | '/' fator | '%' fator)*;
-fator: '(' expression ')' | NUM | VAR | STR | CHAR | VAR '++' | VAR '--';
+fator: '!' fator             // Suporte para negação lógica
+    | '(' expression ')'     // Parênteses para agrupar expressões
+    | NUM                   // Número
+    | VAR                   // Variável
+    | STR                   // String
+    | CHAR                  // Caractere
+    | VAR '++'              // Incremento pós-fixado
+    | VAR '--';             // Decremento pós-fixado
 
-// Expressões condicionais
-exprbloco: expression (RELOP expression)?
-         | exprbloco '&&' exprbloco
-         | exprbloco '||' exprbloco
-         | '!' exprbloco;
+
+
+// Expressões condicionais com suporte para operadores lógicos
+exprbloco
+    : '(' exprbloco ')'                    # ParentesisExpression
+    | '!' exprbloco                        # NotExpression
+    | exprbloco '&&' exprbloco             # AndExpression
+    | exprbloco '||' exprbloco             # OrExpression
+    | expression (RELOP expression)?      # RelationalExpression
+    ;
+
 
 // Casting e typeof
 casting: '(' (INT | FLOAT | CHAR | DOUBLE | VOID) ')' VAR ';';

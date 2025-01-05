@@ -431,15 +431,65 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitFator([NotNull] LangGrammarParser.FatorContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.exprbloco"/>.
+	/// Enter a parse tree produced by the <c>RelationalExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterExprbloco([NotNull] LangGrammarParser.ExprblocoContext context);
+	void EnterRelationalExpression([NotNull] LangGrammarParser.RelationalExpressionContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.exprbloco"/>.
+	/// Exit a parse tree produced by the <c>RelationalExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitExprbloco([NotNull] LangGrammarParser.ExprblocoContext context);
+	void ExitRelationalExpression([NotNull] LangGrammarParser.RelationalExpressionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>ParentesisExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterParentesisExpression([NotNull] LangGrammarParser.ParentesisExpressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>ParentesisExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitParentesisExpression([NotNull] LangGrammarParser.ParentesisExpressionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>AndExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterAndExpression([NotNull] LangGrammarParser.AndExpressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>AndExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitAndExpression([NotNull] LangGrammarParser.AndExpressionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>NotExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterNotExpression([NotNull] LangGrammarParser.NotExpressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>NotExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitNotExpression([NotNull] LangGrammarParser.NotExpressionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>OrExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterOrExpression([NotNull] LangGrammarParser.OrExpressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>OrExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitOrExpression([NotNull] LangGrammarParser.OrExpressionContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.casting"/>.
 	/// </summary>

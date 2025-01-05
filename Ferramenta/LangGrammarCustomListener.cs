@@ -37,12 +37,19 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
             // Substitui os caracteres de escape
             format = format.Replace("\\n", "\n").Replace("\\t", "\t");
 
-            List<int> arguments = new List<int>();
+            List<string> arguments = new List<string>();
 
             // Processa os argumentos
             foreach (var expr in context.expression())
             {
-                arguments.Add(EvaluateExpression(expr));
+                int value = EvaluateExpression(expr);
+
+                // Converte valores booleanos para 0 ou 1, caso necessário
+                string formattedValue = (value != 0 && (expr.GetText() == "true" || expr.GetText() == "false"))
+                    ? (value != 0 ? "1" : "0")
+                    : value.ToString();
+
+                arguments.Add(formattedValue);
             }
 
             // Substitui os placeholders %d pelos valores
@@ -50,7 +57,7 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
             string output = format;
             while (output.Contains("%d") && index < arguments.Count)
             {
-                output = output.ReplaceFirst("%d", arguments[index].ToString());
+                output = output.ReplaceFirst("%d", arguments[index]);
                 index++;
             }
 
@@ -62,6 +69,7 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
             Console.WriteLine($"Erro ao processar printf: {ex.Message}");
         }
     }
+
     public override void ExitDecisionFunc(LangGrammarParser.DecisionFuncContext context)
     {
         try
@@ -75,7 +83,7 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
                 {
                     if (i == 0)
                     {
-                        Console.WriteLine("Executando bloco 'if'");
+                        Console.WriteLine("\nExecutando bloco 'if'");
                     }
                     else
                     {
@@ -269,47 +277,79 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
         return condition;
     }
 
-// Método auxiliar para logar o resultado da condição
+    public override void ExitIn(LangGrammarParser.InContext context)
+    {
+        try
+        {
+            string varName = context.VAR().GetText();
+            if (!_variables.ContainsKey(varName))
+            {
+                _variables[varName] = 0; // Inicializa com 0 se não existir
+            }
+
+            Console.Write($"Digite o valor para {varName}: ");
+            string input = Console.ReadLine();
+            _variables[varName] = int.Parse(input);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao processar scanf: {ex.Message}");
+        }
+    }
 
     private int EvaluateExpression(LangGrammarParser.ExpressionContext context)
-    {
-        int value = EvaluateTerminais(context.terminais(0));
-        for (int i = 1; i < context.terminais().Length; i++)
-        {
-            string op = context.GetChild(2 * i - 1).GetText();
-            int nextValue = EvaluateTerminais(context.terminais(i));
+{
+    if (context == null) return 0;
 
-            value = op switch
-            {
-                "+" => value + nextValue,
-                "-" => value - nextValue,
-                _ => throw new NotSupportedException($"Operador '{op}' não suportado")
-            };
-        }
-        return value;
+    int value = EvaluateTerminais(context.terminais(0));
+
+    for (int i = 1; i < context.terminais().Length; i++)
+    {
+        string op = context.GetChild(2 * i - 1).GetText();
+        int nextValue = EvaluateTerminais(context.terminais(i));
+
+        value = op switch
+        {
+            "+" => value + nextValue,
+            "-" => value - nextValue,
+            "*" => value * nextValue,
+            "/" => nextValue != 0 ? value / nextValue : throw new DivideByZeroException(),
+            "%" => value % nextValue,
+            _ => throw new NotSupportedException($"Operador '{op}' não suportado")
+        };
     }
+
+    return value;
+}
 
     private int EvaluateTerminais(LangGrammarParser.TerminaisContext context)
-    {
-        int value = EvaluateFator(context.fator(0));
-        for (int i = 1; i < context.fator().Length; i++)
         {
-            string op = context.GetChild(2 * i - 1).GetText();
-            int nextValue = EvaluateFator(context.fator(i));
-
-            value = op switch
+            int value = EvaluateFator(context.fator(0));
+            for (int i = 1; i < context.fator().Length; i++)
             {
-                "*" => value * nextValue,
-                "/" => nextValue != 0 ? value / nextValue : throw new Exception("Divisão por zero."),
-                "%" => value % nextValue,
-                _ => throw new NotSupportedException($"Operador '{op}' não suportado")
-            };
-        }
-        return value;
-    }
+                string op = context.GetChild(2 * i - 1).GetText();
+                int nextValue = EvaluateFator(context.fator(i));
 
+                value = op switch
+                {
+                    "*" => value * nextValue,
+                    "/" => nextValue != 0 ? value / nextValue : throw new Exception("Divisão por zero."),
+                    "%" => value % nextValue,
+                    _ => throw new NotSupportedException($"Operador '{op}' não suportado")
+                };
+            }
+            return value;
+        }
+
+   
     private int EvaluateFator(LangGrammarParser.FatorContext context)
     {
+        if (context.NOT() != null) // Verifica se o fator é uma negação lógica
+        {
+            int value = EvaluateFator(context.fator()); // Avalia o fator após o `!`
+            return value == 0 ? 1 : 0; // Retorna 1 se o valor for falso, 0 caso contrário
+        }
+
         if (context.NUM() != null)
         {
             return int.Parse(context.NUM().GetText());
@@ -327,7 +367,7 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
 
         if (context.expression() != null)
         {
-            return EvaluateExpression(context.expression());
+            return EvaluateExpression(context.expression()); // Avalia expressões entre parênteses
         }
 
         throw new Exception("Fator inválido.");
@@ -337,24 +377,56 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
     {
         if (context == null) return false;
 
-        int left = EvaluateExpression(context.expression(0));
-        if (context.RELOP() != null)
+        // Parênteses: Avalia a subexpressão entre parênteses
+        if (context is LangGrammarParser.ParentesisExpressionContext parentesisCtx)
         {
-            int right = EvaluateExpression(context.expression(1));
-            string op = context.RELOP().GetText();
-            return op switch
-            {
-                "==" => left == right,
-                "!=" => left != right,
-                ">" => left > right,
-                "<" => left < right,
-                ">=" => left >= right,
-                "<=" => left <= right,
-                _ => throw new NotSupportedException($"Operador relacional '{op}' não suportado")
-            };
+            return EvaluateCondition(parentesisCtx.exprbloco());
         }
 
-        return left != 0; // Se não houver operador, verifica se a expressão é verdadeira
+        // Negação: Avalia a subexpressão e inverte o resultado
+        if (context is LangGrammarParser.NotExpressionContext notCtx)
+        {
+            return !EvaluateCondition(notCtx.exprbloco());
+        }
+
+        // Operador lógico '&&'
+        if (context is LangGrammarParser.AndExpressionContext andCtx)
+        {
+            return EvaluateCondition(andCtx.exprbloco(0)) && EvaluateCondition(andCtx.exprbloco(1));
+        }
+
+        // Operador lógico '||'
+        if (context is LangGrammarParser.OrExpressionContext orCtx)
+        {
+            return EvaluateCondition(orCtx.exprbloco(0)) || EvaluateCondition(orCtx.exprbloco(1));
+        }
+
+        // Operador relacional
+        if (context is LangGrammarParser.RelationalExpressionContext relCtx)
+        {
+            int left = EvaluateExpression(relCtx.expression(0));
+            if (relCtx.RELOP() != null)
+            {
+                int right = EvaluateExpression(relCtx.expression(1));
+                string op = relCtx.RELOP().GetText();
+
+                return op switch
+                {
+                    "==" => left == right,
+                    "!=" => left != right,
+                    ">" => left > right,
+                    "<" => left < right,
+                    ">=" => left >= right,
+                    "<=" => left <= right,
+                    _ => throw new NotSupportedException($"Operador relacional '{op}' não suportado")
+                };
+            }
+
+            // Se não houver operador relacional, verifica se a expressão é verdadeira
+            return left != 0;
+        }
+
+        throw new Exception("Condição inválida.");
     }
 
 private void ExecuteBlock(LangGrammarParser.BlocoContext context)
