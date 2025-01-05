@@ -55,7 +55,10 @@ pointerDereference: '*' VAR '=' expression ';';
 
 // Entrada e saída
 in: SCAN '(' FORMAT ',' '&' VAR ')' ';';
-output: PRINT '(' STR (',' expression)* ')' ';';
+output
+    : 'printf' '(' STR (',' (expression | exprbloco))* ')' ';'
+    ;
+
 
 getsStmt: GETS '(' VAR ')' ';';
 putsStmt: PUTS '(' VAR ')' ';';

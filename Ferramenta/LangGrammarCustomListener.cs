@@ -27,48 +27,51 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
         }
     }
 
-    public override void ExitOutput(LangGrammarParser.OutputContext context)
+public override void ExitOutput(LangGrammarParser.OutputContext context)
+{
+    try
     {
-        try
+        // Obtém a string formatada e remove as aspas
+        string format = context.STR().GetText().Trim('"');
+        
+        // Substitui os caracteres de escape
+        format = format.Replace("\\n", "\n").Replace("\\t", "\t");
+
+        List<string> arguments = new List<string>();
+
+        // Processa os argumentos (expression ou exprbloco)
+        foreach (var expr in context.expression())
         {
-            // Obtém a string formatada e remove as aspas
-            string format = context.STR().GetText().Trim('"');
-            
-            // Substitui os caracteres de escape
-            format = format.Replace("\\n", "\n").Replace("\\t", "\t");
-
-            List<string> arguments = new List<string>();
-
-            // Processa os argumentos
-            foreach (var expr in context.expression())
-            {
-                int value = EvaluateExpression(expr);
-
-                // Converte valores booleanos para 0 ou 1, caso necessário
-                string formattedValue = (value != 0 && (expr.GetText() == "true" || expr.GetText() == "false"))
-                    ? (value != 0 ? "1" : "0")
-                    : value.ToString();
-
-                arguments.Add(formattedValue);
-            }
-
-            // Substitui os placeholders %d pelos valores
-            int index = 0;
-            string output = format;
-            while (output.Contains("%d") && index < arguments.Count)
-            {
-                output = output.ReplaceFirst("%d", arguments[index]);
-                index++;
-            }
-
-            // Exibe o resultado formatado
-            Console.Write(output); // Utiliza Write em vez de WriteLine para respeitar \n
+            int value = EvaluateExpression(expr);
+            arguments.Add(value.ToString());
         }
-        catch (Exception ex)
+
+        if (context.exprbloco() != null)
         {
-            Console.WriteLine($"Erro ao processar printf: {ex.Message}");
+            foreach (var condition in context.exprbloco())
+            {
+                int value = EvaluateConditionAsInt(condition);
+                arguments.Add(value.ToString());
+            }
         }
+
+        // Substitui os placeholders %d pelos valores
+        int index = 0;
+        string output = format;
+        while (output.Contains("%d") && index < arguments.Count)
+        {
+            output = output.ReplaceFirst("%d", arguments[index]);
+            index++;
+        }
+
+        // Exibe o resultado formatado
+        Console.Write(output); // Utiliza Write em vez de WriteLine para respeitar \n
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erro ao processar printf: {ex.Message}");
+    }
+}
 
     public override void ExitDecisionFunc(LangGrammarParser.DecisionFuncContext context)
     {
@@ -298,29 +301,27 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
     }
 
     private int EvaluateExpression(LangGrammarParser.ExpressionContext context)
-{
-    if (context == null) return 0;
-
-    int value = EvaluateTerminais(context.terminais(0));
-
-    for (int i = 1; i < context.terminais().Length; i++)
     {
-        string op = context.GetChild(2 * i - 1).GetText();
-        int nextValue = EvaluateTerminais(context.terminais(i));
+        int value = EvaluateTerminais(context.terminais(0));
 
-        value = op switch
+        for (int i = 1; i < context.terminais().Length; i++)
         {
-            "+" => value + nextValue,
-            "-" => value - nextValue,
-            "*" => value * nextValue,
-            "/" => nextValue != 0 ? value / nextValue : throw new DivideByZeroException(),
-            "%" => value % nextValue,
-            _ => throw new NotSupportedException($"Operador '{op}' não suportado")
-        };
-    }
+            string op = context.GetChild(2 * i - 1).GetText(); // Obtém o operador
+            int nextValue = EvaluateTerminais(context.terminais(i));
 
-    return value;
-}
+            value = op switch
+            {
+                "+" => value + nextValue,
+                "-" => value - nextValue,
+                "*" => value * nextValue,
+                "/" => nextValue != 0 ? value / nextValue : throw new Exception("Divisão por zero."),
+                "%" => value % nextValue,
+                _ => throw new NotSupportedException($"Operador aritmético '{op}' não suportado")
+            };
+        }
+
+        return value;
+    }
 
     private int EvaluateTerminais(LangGrammarParser.TerminaisContext context)
         {
@@ -410,6 +411,7 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
                 int right = EvaluateExpression(relCtx.expression(1));
                 string op = relCtx.RELOP().GetText();
 
+                // Avalia a expressão relacional e retorna como booleano
                 return op switch
                 {
                     "==" => left == right,
@@ -428,6 +430,12 @@ public class LangGrammarCustomListener : LangGrammarBaseListener
 
         throw new Exception("Condição inválida.");
     }
+
+private int EvaluateConditionAsInt(LangGrammarParser.ExprblocoContext context)
+{
+    return EvaluateCondition(context) ? 1 : 0;
+}
+
 
 private void ExecuteBlock(LangGrammarParser.BlocoContext context)
 {
