@@ -1,36 +1,216 @@
 grammar LangGrammar;
 
 // Regras principais
-program : include* mainFunction EOF;
+programa: cabecalho corpo EOF;
 
-include : '#include' '<' LIBRARY_NAME '>';
+cabecalho: (includeDecl | defineDecl | comentario)*;
 
-mainFunction : 'int' 'main' '(' (')' | 'void') ')' block;
+includeDecl: INCLUDE LIB;
+defineDecl: DEFINE VAR expression?;
 
-block : '{' (statement | declaration)* returnStatement '}';
+corpo: (structDecl | mainFunction | functionDecl | unionDecl | comentario)*;
 
-statement : PRINT_FUNCTION '(' STRING ')' ';'
-          | expression ';';
+mainFunction: INT MAIN '(' (VOID | ) ')' bloco ;
 
-expression : expression ('+' | '-' | '*' | '/' | '%' | '==' | '!=' | '>' | '<' | '>=' | '<=' | '&&' | '||' | '!' ) expression
-           | ID '=' expression        // Atribuição de valor a variável
-           | INT_LITERAL
-           | FLOAT_LITERAL
-           | CHAR_LITERAL
-           | ID;  // Para acessar variáveis
+bloco: '{' linhas* '}';
 
-declaration : type ID ('=' expression)? ('[' INT_LITERAL ']')? ';';  // Declaração de variáveis ou arrays
+// Declaração de struct
+structDecl
+    : 'struct' VAR '{' structMember* '}' ';'
+    ;
 
-type : 'int' | 'float' | 'char'; // Tipos de variáveis
+// Membros de struct
+structMember
+    : tipo VAR (CO CONSTANT CC)? ';'
+    ;
+    
+structAccess: VAR DOT VAR ASSIGN expression ';'; 
 
-returnStatement : 'return' expression ';'; // O return agora pode ser uma expressão
+linhas
+    : structAccess
+    | functionCall
+    | atrib
+    | comentario
+    | arrayDecl
+    | pointerDecl
+    | pointerAssign
+    | pointerDereference
+    | unionAccess
+    | input
+    | output
+    | getsStmt
+    | putsStmt
+    | decisionFunc
+    | switchCase
+    | loopFunc
+    | doWhileLoop
+    | casting
+    | typeof
+    | ternary
+    | returnStmt
+    ;
+
+// Regras de comentário
+comentario: COMMENTLINE | COMMENTBLOCK;
+
+// Declarações de variáveis
+atrib: tipo VAR ('=' expression)? ';'
+     | VAR '=' expression ';' 
+     | structAccess
+     ;
+
+arrayDecl: tipo VAR CO NUM CC ('=' CD elementosArray CE)? ';';
+elementosArray: expression (DOT expression)*;
+arrayAccess: VAR '[' expression ']';
+
+// Declaração de ponteiros
+pointerDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) '*' VAR ';';
+pointerAssign: VAR '=' '&' VAR ';';
+pointerDereference: '*' VAR '=' expression ';';
+
+// Entrada e saída
+input: 'scanf' '('FORMAT COMMA '&' VAR ')' ';';
+output
+    : 'printf' '(' STR (COMMA (expression | exprbloco | arrayAccess))* ')' ';'
+    | STR (',' expression | ',' arrayAccess)*
+    ;
+
+
+getsStmt: GETS '(' VAR ')' ';'; 
+putsStmt: PUTS '(' VAR ')' ';';
+
+// Declarações de funções
+functionDecl: tipo VAR '(' parametros? ')' blocoFunction ;
+
+functionCall: VAR PD argumentos? PE ;
+blocoFunction: '{' linhas+ '}' ;
+
+parametros: tipo VAR (COMMA tipo VAR)*;
+tipo: INT | FLOAT | CHAR | DOUBLE | VOID 
+    | 'struct' VAR 
+    | VAR
+    ;
+argumentos: expression (COMMA expression)*;
+
+// Declaração de uniões
+unionDecl: UNION VAR '{' unionFields '}' ';';
+unionFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR ';')+;
+
+// Acesso a campos de estruturas e uniões
+unionAccess: VAR '.' VAR ('=' expression)? ';';
+
+// Controle de fluxo
+decisionFunc
+    : IF '(' exprbloco ')' bloco (ELSE IF '(' exprbloco ')' bloco)* (ELSE bloco)?;
+
+switchCase: SWITCH '(' VAR ')' '{' caseBlock+ defaultBlock? '}';
+
+caseBlock: CASE NUM ':' linhas* BREAK ';';
+defaultBlock: DEFAULT ':' linhas* BREAK ';';
+
+loopFunc: whileLoop | forLoop;
+
+whileLoop: WHILE '(' exprbloco ')' bloco;
+forLoop
+    : FOR '(' (atrib | ';') exprbloco? ';' (atrib | expression) ')' bloco
+    ;
+
+doWhileLoop: DO bloco WHILE '(' exprbloco ')' ';';
+
+// Expressões
+expression: terminais (('+' | '-') terminais)*
+    | arrayAccess
+    ;
+
+arrayUpdate
+    : VAR '[' expression ']' '=' expression
+    ;
+
+terminais: fator ('*' fator | '/' fator | '%' fator)*;
+fator: '!' fator             // Suporte para negação lógica
+    | '(' expression ')'     // Parênteses para agrupar expressões
+    | NUM                   // Número
+    | VAR                   // Variável
+    | STR                   // String
+    | CHAR                  // Caractere
+    | VAR '++'              // Incremento pós-fixado
+    | VAR '--';             // Decremento pós-fixado
+    
+
+
+// Expressões condicionais com suporte para operadores lógicos
+exprbloco
+    : '(' exprbloco ')'                    # ParentesisExpression
+    | '!' exprbloco                        # NotExpression
+    | exprbloco '&&' exprbloco             # AndExpression
+    | exprbloco '||' exprbloco             # OrExpression
+    | expression (RELOP expression)?      # RelationalExpression
+    ;
+
+
+// Casting e typeof
+casting: '(' (INT | FLOAT | CHAR | DOUBLE | VOID) ')' VAR ';';
+typeof: TYPEOF '(' VAR ')' ';';
+
+// Operador ternário
+ternary: exprbloco '?' expression ':' expression ';';
+
+// Retorno
+returnStmt: RETURN expression ';';
 
 // Tokens
-LIBRARY_NAME : 'stdio.h' | 'math.h' | 'stdlib.h' | 'string.h'; // Adicione mais bibliotecas se necessário
-PRINT_FUNCTION : 'printf';
-STRING : '"' .*? '"';
-INT_LITERAL : [0-9]+;
-FLOAT_LITERAL : [0-9]+ '.' [0-9]+;
-CHAR_LITERAL : '\'' [a-zA-Z] '\'';
-ID : [a-zA-Z_][a-zA-Z_0-9]*;
-WS : [ \t\r\n]+ -> skip;
+LIB: '<' [a-zA-Z_][a-zA-Z0-9_]* '>' | '"' [a-zA-Z_][a-zA-Z0-9_]* '.h' '"'; //Para aceitar bibliotecas locais 
+INCLUDE: '#include';
+DEFINE: '#define';
+RELOP: '==' | '!=' | '<' | '<=' | '>' | '>=';
+COMMENTLINE: '//' ~[\r\n]* -> skip;
+COMMENTBLOCK: '/*' .*? '*/' -> skip;
+
+INT: 'int';
+FLOAT: 'float';
+CHAR: 'char';
+DOUBLE: 'double';
+VOID: 'void';
+MAIN: 'main';
+COMMA: ',';
+PLUS: '+';
+MINUS: '-';
+MULT: '*';
+DIV: '/';
+MOD: '%';
+AND: '&&';
+OR: '||';
+NOT: '!';
+CD: '{';
+CE: '}';
+PD: '(';
+PE: ')';
+CO: '[';
+CC: ']';
+SOMA: '++';
+SUB: '--';
+ASSIGN: '=';
+DOT: '.';
+RETURN: 'return';
+SCAN: 'scanf';
+PRINT: 'printf';
+GETS: 'gets';
+PUTS: 'puts';
+STRUCT: 'struct';
+UNION: 'union';
+IF: 'if';
+ELSE: 'else';
+SWITCH: 'switch';
+CASE: 'case';
+BREAK: 'break';
+DEFAULT: 'default';
+WHILE: 'while';
+FOR: 'for';
+DO: 'do';
+TYPEOF: 'typeof';
+WS: [ \t\r\n]+ -> skip;
+VAR: [_a-zA-Z][_a-zA-Z0-9]*;
+NUM: [0-9]+;
+CONSTANT   : [0-9]+ ('.' [0-9]+)?;
+FORMAT: '"%' [dcsfxe] '"';
+STR: '"' ~[\n"]* '"';

@@ -1,13 +1,14 @@
-int main() {
-    int a = 5;
-    int b = 10;
+#include <stdio.h>
 
-    if (a > b) {
-        printf("A é maior que B\n");
-    } else if (a < b) {
-        printf("A é menor que B\n");
+int main(void) {
+    int x = 10;
+    int y = 20;
+
+    // Estrutura condicional if-else
+    if (x > y) {
+        printf("x é maior que y\n");
     } else {
-        printf("A é igual a B\n");
+        printf("x não é maior que y\n");
     }
 
     return 0;
