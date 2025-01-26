@@ -1,5 +1,6 @@
 public class LangGrammarCustomListener : LangGrammarBaseListener{
-    private Dictionary<string, int> _variables = new Dictionary<string, int>();
+    private Dictionary<string, object> _variables = new Dictionary<string, object>();
+    
     private bool _insideForLoop = false; // Controle do contexto do `for`
     private Dictionary<string, string> defines = new Dictionary<string, string>();
     private Dictionary<string, FunctionInfo> functions = new Dictionary<string, FunctionInfo>();
@@ -7,8 +8,13 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
     private int _lastReturnValue;
     private Dictionary<string, Dictionary<string, string>> _structs = new Dictionary<string, Dictionary<string, string>>();
     private Dictionary<string, Dictionary<string, object>> _structInstances = new Dictionary<string, Dictionary<string, object>>();
-    private readonly Dictionary<string, List<int>> _arrays = new Dictionary<string, List<int>>(); // Para armazenar arrays
+    //private readonly Dictionary<string, List<int>> _arrays = new Dictionary<string, List<int>>(); // Para armazenar arrays
+    private Dictionary<string, List<int>> _arrays = new();
 
+public LangGrammarCustomListener()
+{
+    _variables = new Dictionary<string, object>();
+}
     class FunctionInfo
     {
         public string ReturnType { get; set; } = string.Empty;
@@ -170,7 +176,9 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
             }
 
             var functionInfo = functions[functionName];
-            var previousVariables = new Dictionary<string, int>(_variables);
+
+            // Clona o dicionário com valores como object
+            var previousVariables = _variables.ToDictionary(kv => kv.Key, kv => kv.Value);
 
             _variables.Clear();
 
@@ -178,11 +186,13 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
             for (int i = 0; i < functionInfo.Parameters.Count; i++)
             {
                 string paramName = functionInfo.Parameters[i].Name;
-                int paramValue = EvaluateExpression(expressions[i]);
-                _variables[paramName] = paramValue;
+                int paramValue = EvaluateExpression(expressions[i]); // Certifique-se de que EvaluateExpression retorna um int
+                _variables[paramName] = paramValue; // Armazena como object
             }
 
             _lastReturnValue = ExecuteFunctionBlock(functionInfo.Body, functionInfo);
+
+            // Restaura os valores do dicionário original
             _variables = previousVariables;
 
             Console.WriteLine($"Função '{functionName}' chamada com sucesso. Retorno: {_lastReturnValue}");
@@ -193,45 +203,96 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
         }
     }
 
+
     public override void ExitAtrib(LangGrammarParser.AtribContext context)
     {
         try
         {
-            string varName = context.VAR().GetText();
+            string varName = context.VAR().GetText(); // Nome da variável
+            string tipo = context.tipo().GetText(); // Tipo da variável
+            var expr = context.expression(); // Expressão de inicialização (opcional)
 
-            if (!_variables.ContainsKey(varName))
+            // Inicializa o dicionário de variáveis
+            _variables ??= new Dictionary<string, object>();
+
+            if (tipo == "int")
             {
-                _variables[varName] = 0; // Inicializa com 0
-                Console.WriteLine($"Variável '{varName}' inicializada com valor padrão 0");
+                // Inicializa uma variável inteira
+                if (expr != null)
+                {
+                    _variables[varName] = EvaluateExpression(expr); // Atribui o valor inicial
+                }
+                else
+                {
+                    _variables[varName] = 0; // Valor padrão
+                }
             }
-
-            if (context.expression() != null)
+            else if (tipo == "float")
             {
-                int value = EvaluateExpression(context.expression());
-                _variables[varName] = value;
-                Console.WriteLine($"Variável '{varName}' atualizada com valor {value}");
+                // Inicializa uma variável float
+                if (expr != null)
+                {
+                    _variables[varName] = Convert.ToSingle(EvaluateExpression(expr));
+                }
+                else
+                {
+                    _variables[varName] = 0.0f; // Valor padrão
+                }
+            }
+            else if (tipo == "char")
+            {
+                // Inicializa uma variável char
+                if (expr != null)
+                {
+                    string charValue = EvaluateExpression(expr).ToString();
+                    if (charValue.Length == 1)
+                    {
+                        _variables[varName] = charValue[0];
+                    }
+                    else
+                    {
+                        throw new Exception($"Erro: Valor '{charValue}' não é um caractere válido.");
+                    }
+                }
+                else
+                {
+                    _variables[varName] = '\0'; // Valor padrão
+                }
+            }
+            else
+            {
+                throw new Exception($"Erro: Tipo '{tipo}' não é suportado.");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao processar atribuição: {ex.Message}");
+            Console.WriteLine($"Erro ao declarar variável: {ex.Message}");
         }
     }
+    // Substitui apenas a primeira ocorrência de um placeholder
+    private string ReplaceFirst(string text, string search, string replace)
+    {
+        int pos = text.IndexOf(search);
+        if (pos < 0)
+            return text;
+        return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
+    }
 
-    // Exemplo de suporte para imprimir valores no array
     public override void ExitOutput(LangGrammarParser.OutputContext context)
     {
         try
         {
+            // Obtém a string formatada
             string format = context.STR().GetText().Trim('"').Replace("\\n", "\n").Replace("\\t", "\t");
             List<string> arguments = new List<string>();
 
-            // Lida com expressões e acessos a arrays
+            // Processa as expressões fornecidas
             foreach (var expr in context.expression())
             {
                 arguments.Add(EvaluateExpression(expr).ToString());
             }
 
+            // Processa acessos a arrays
             foreach (var arrayAccess in context.arrayAccess())
             {
                 string arrayName = arrayAccess.VAR().GetText();
@@ -239,7 +300,15 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
 
                 if (_arrays.ContainsKey(arrayName))
                 {
-                    arguments.Add(_arrays[arrayName][index].ToString());
+                    var array = _arrays[arrayName];
+                    if (index >= 0 && index < array.Count)
+                    {
+                        arguments.Add(array[index].ToString());
+                    }
+                    else
+                    {
+                        throw new IndexOutOfRangeException($"Índice '{index}' fora dos limites do array '{arrayName}'.");
+                    }
                 }
                 else
                 {
@@ -247,15 +316,30 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
                 }
             }
 
-            // Substitui os placeholders %d na string de formato
-            int idx = 0;
+            // Substitui os placeholders na ordem correta
             string output = format;
-            while (output.Contains("%d") && idx < arguments.Count)
+            int idx = 0;
+            while (output.Contains("%") && idx < arguments.Count)
             {
-                output = output.ReplaceFirst("%d", arguments[idx]);
-                idx++;
+                string placeholder = FindNextPlaceholder(output);
+                if (placeholder == "%d" || placeholder == "%f" || placeholder == "%c" || placeholder == "%s")
+                {
+                    output = ReplaceFirst(output, placeholder, arguments[idx]);
+                    idx++;
+                }
+                else
+                {
+                    throw new Exception($"Placeholder '{placeholder}' não suportado.");
+                }
             }
 
+            // Verifica se ainda existem placeholders não substituídos
+            if (output.Contains("%"))
+            {
+                throw new Exception("Número insuficiente de argumentos para preencher todos os placeholders.");
+            }
+
+            // Imprime a saída
             Console.Write(output);
         }
         catch (Exception ex)
@@ -264,37 +348,119 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
         }
     }
 
-    public override void ExitInput(LangGrammarParser.InputContext context){
-        try{
-            string format = context.FORMAT().GetText();
+    // Encontra o próximo placeholder na string formatada
+    private string FindNextPlaceholder(string format)
+    {
+        int minIndex = int.MaxValue;
+        string nextPlaceholder = "";
+
+        string[] placeholders = { "%d", "%f", "%c", "%s" };
+        foreach (var placeholder in placeholders)
+        {
+            int index = format.IndexOf(placeholder);
+            if (index != -1 && index < minIndex)
+            {
+                minIndex = index;
+                nextPlaceholder = placeholder;
+            }
+        }
+
+        return nextPlaceholder;
+    }
+
+
+    public override void ExitInput(LangGrammarParser.InputContext context)
+    {
+        try
+        {
+            string format = context.FORMAT().GetText().Trim('"');
             string varName = context.VAR().GetText();
 
-            if (!_variables.ContainsKey(varName)){
-                throw new Exception($"Variável '{varName}' não declarada.");
-                //_variables[varName] = 0; // Inicializa com 0 se não existir
+            // Inicializa o dicionário de variáveis, se necessário
+            _variables ??= new Dictionary<string, object>();
+
+            // Não exibe mensagem extra, pois o printf já foi processado
+            string? input = Console.ReadLine()?.Trim();
+
+            if (format == "%d")
+            {
+                if (int.TryParse(input, out int intValue))
+                {
+                    _variables[varName] = intValue; // Armazena o valor como inteiro
+                }
+                else
+                {
+                    throw new Exception($"Entrada inválida para o formato {format}. Esperava-se um número inteiro.");
+                }
             }
-
-            //Console.Write($"Digite o valor para {varName}: ");
-            string input = Console.ReadLine();
-
-            // Tratar formato de entrada
-        if (format == "\"%d\""){
-            if (int.TryParse(input, out int intValue)) {
-                _variables[varName] = intValue;
-            }else{
-                throw new Exception($"Entrada inválida para o formato {format}: {input}");
+            else if (format == "%s")
+            {
+                _variables[varName] = input ?? string.Empty; // Armazena como string
+            }
+            else
+            {
+                throw new Exception($"Formato '{format}' não suportado.");
             }
         }
-        else{
-            Console.WriteLine($"Formato desconhecido: {format}");
-        }
-
-            Console.WriteLine($"{varName} value updated to {_variables[varName]}");
-        }catch (Exception ex){
-            Console.WriteLine($"Error processing scanf: {ex.Message}");
-            Console.WriteLine(ex.StackTrace);
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro durante a execução do input: {ex.Message}");
         }
     }
+
+    public override void ExitGetsStmt(LangGrammarParser.GetsStmtContext context)
+    {
+        try
+        {
+            string varName = context.VAR().GetText();
+
+            // Inicializa o dicionário de variáveis, se necessário
+            _variables ??= new Dictionary<string, object>();
+
+            // O printf anterior já deve exibir "Digite uma string:"
+            string input = Console.ReadLine() ?? string.Empty;
+
+            // Limita o tamanho da string para simular gets
+            if (input.Length > 256)
+            {
+                input = input.Substring(0, 256);
+            }
+
+            _variables[varName] = input;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro durante a execução do gets: {ex.Message}");
+        }
+    }
+
+    public override void ExitPutsStmt(LangGrammarParser.PutsStmtContext context)
+    {
+        try
+        {
+            string varName = context.VAR().GetText();
+
+            // Inicializa o dicionário de variáveis, se necessário
+            _variables ??= new Dictionary<string, object>();
+
+            if (_variables.TryGetValue(varName, out object? value))
+            {
+                Console.WriteLine(value?.ToString() ?? string.Empty);
+            }
+            else
+            {
+                throw new Exception($"Variável '{varName}' não foi inicializada.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro durante a execução do puts: {ex.Message}");
+        }
+    }
+
+
+
+
 
     public override void ExitDecisionFunc(LangGrammarParser.DecisionFuncContext context)
     {
@@ -345,7 +511,12 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
                 throw new Exception($"Variável '{switchVarName}' não foi inicializada.");
             }
 
-            int switchValue = _variables[switchVarName];
+            // Converte explicitamente o valor para `int`
+            if (!(_variables[switchVarName] is int switchValue))
+            {
+                throw new Exception($"O valor da variável '{switchVarName}' não é um inteiro.");
+            }
+
             bool caseMatched = false;
 
             // Itera sobre os blocos `case`
@@ -380,6 +551,7 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
             Console.WriteLine($"Erro ao processar switch-case: {ex.Message}");
         }
     }
+
 
     private void ExecuteLinha(LangGrammarParser.LinhasContext linha)
     {
@@ -421,7 +593,7 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
             // Enquanto a condição for verdadeira
             while (EvaluateCondition(context.exprbloco()))
             {
-                Console.WriteLine("Condição verdadeira. Executando corpo do while.");
+                Console.WriteLine("[DEBUG] Condição verdadeira. Executando corpo do while.");
 
                 // Executa o bloco do corpo do `while`
                 ExecuteBlock(context.bloco());
@@ -429,7 +601,7 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
                 // Reavalia a condição após cada iteração
                 if (!EvaluateCondition(context.exprbloco()))
                 {
-                    Console.WriteLine("Condição falsa. Saindo do loop while.");
+                    Console.WriteLine("[DEBUG] Condição falsa. Saindo do loop while.");
                     break; // Sai do loop se a condição for falsa
                 }
             }
@@ -440,31 +612,22 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
         }
     }
 
+
     public override void ExitForLoop(LangGrammarParser.ForLoopContext context)
     {
         try
         {
-            // Impede recursões no mesmo loop
-            if (_insideForLoop)
-            {
-                throw new Exception("Tentativa de recursão no mesmo contexto de for.");
-            }
-
-            _insideForLoop = true;
+            Console.WriteLine("Iniciando loop for.");
 
             // Inicializa a variável do loop
-            if (context.atrib(0) != null)
-            {
-                ExecuteInitialization(context.atrib(0));
-                string initVarName = context.atrib(0).VAR().GetText();
-                Console.WriteLine($"[DEBUG] Variável '{initVarName}' inicializada com valor {_variables[initVarName]}");
-            }
+            ExecuteInitialization(context.atrib(0));
+            string initVarName = context.atrib(0).VAR().GetText();
+            Console.WriteLine($"[DEBUG] Variável '{initVarName}' inicializada com valor {_variables[initVarName]}");
 
             // Executa o loop enquanto a condição for verdadeira
             while (EvaluateCondition(context.exprbloco()))
             {
-                string loopVarName = context.atrib(0).VAR().GetText();
-                Console.WriteLine($"[DEBUG] Avaliando variável '{loopVarName}' com valor {_variables[loopVarName]}");
+                Console.WriteLine($"[DEBUG] Avaliando variável '{initVarName}' com valor {_variables[initVarName]}");
 
                 // Executa o corpo do bloco do `for`
                 ExecuteBlock(context.bloco());
@@ -477,7 +640,7 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
                 }
             }
 
-            _insideForLoop = false; // Libera o controle do loop
+            Console.WriteLine("Saindo do loop for.");
         }
         catch (Exception ex)
         {
@@ -490,10 +653,11 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
     {
         try
         {
+            Console.WriteLine("Iniciando loop do-while.");
+
             do
             {
-                // Exibe o estado da variável no início de cada iteração
-                Console.WriteLine("Executando corpo do do-while");
+                Console.WriteLine("[DEBUG] Executando corpo do do-while.");
 
                 // Executa o bloco do `do`
                 ExecuteBlock(context.bloco());
@@ -502,16 +666,19 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
                 Console.WriteLine("Estado das variáveis após execução do bloco:");
                 foreach (var variable in _variables)
                 {
-                    Console.WriteLine($"Variável '{variable.Key}' = {variable.Value}");
+                    Console.WriteLine($"[DEBUG] Variável '{variable.Key}' = {variable.Value}");
                 }
+            }
+            while (EvaluateCondition(context.exprbloco())); // Avalia a condição do `while`
 
-            } while (LogConditionResult(EvaluateCondition(context.exprbloco()))); // Avalia a condição do `while`
+            Console.WriteLine("Saindo do loop do-while.");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao processar do-while: {ex.Message}");
         }
     }
+
 
     // Suporte para declaração e inicialização de arrays
     public override void ExitArrayDecl(LangGrammarParser.ArrayDeclContext context)
@@ -521,24 +688,50 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
             string arrayName = context.VAR().GetText();
             int arraySize = int.Parse(context.NUM().GetText());
 
-            if (!_arrays.ContainsKey(arrayName))
+            // Verifica se o tamanho do array é válido
+            if (arraySize <= 0)
             {
-                _arrays[arrayName] = new List<int>(new int[arraySize]);
-                Console.WriteLine($"Array '{arrayName}' declarado com tamanho {arraySize}");
+                throw new Exception($"Erro: O tamanho do array '{arrayName}' deve ser maior que zero.");
             }
 
+            // Verifica se o array já foi declarado
+            if (_arrays.ContainsKey(arrayName))
+            {
+                throw new Exception($"Erro: Array '{arrayName}' já declarado.");
+            }
+
+            // Inicializa o array com valores padrão (0)
+            List<int> array = new List<int>();
+            for (int i = 0; i < arraySize; i++)
+            {
+                array.Add(0); // Adiciona valores padrão (0)
+            }
+
+            _arrays[arrayName] = array;
+
+            Console.WriteLine($"Array '{arrayName}' declarado com tamanho {arraySize}.");
+
+            // Verifica se há valores iniciais fornecidos
             var expressions = context.children.OfType<LangGrammarParser.ExpressionContext>().ToList();
+            if (expressions.Count > arraySize)
+            {
+                throw new Exception($"Erro: Número de valores iniciais excede o tamanho do array '{arrayName}'.");
+            }
+
+            // Preenche o array com os valores fornecidos
             for (int i = 0; i < expressions.Count; i++)
             {
-                _arrays[arrayName][i] = EvaluateExpression(expressions[i]);
+                array[i] = EvaluateExpression(expressions[i]);
             }
-            Console.WriteLine($"Array '{arrayName}' inicializado com valores: {string.Join(", ", _arrays[arrayName])}");
+
+            Console.WriteLine($"Array '{arrayName}' inicializado com valores: {string.Join(", ", array)}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao declarar array: {ex.Message}");
+            Console.WriteLine($"Erro ao declarar array '{context.VAR().GetText()}': {ex.Message}");
         }
     }
+
 
     // Suporte para acessar valores no array
      public override void ExitArrayAccess(LangGrammarParser.ArrayAccessContext context)
@@ -610,153 +803,227 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
 
     private int EvaluateExpression(LangGrammarParser.ExpressionContext context)
     {
-        // Se for acesso a array
-        if (context.arrayAccess() != null)
+        try
         {
-            string arrayName = context.arrayAccess().VAR().GetText();
-            int index = EvaluateExpression(context.arrayAccess().expression());
-            if (_arrays.ContainsKey(arrayName))
+            // Se for acesso a array
+            if (context.arrayAccess() != null)
             {
-                return _arrays[arrayName][index];
+                string arrayName = context.arrayAccess().VAR().GetText();
+                int index = EvaluateExpression(context.arrayAccess().expression());
+
+                if (_arrays.ContainsKey(arrayName))
+                {
+                    var array = _arrays[arrayName];
+
+                    if (index >= 0 && index < array.Count) // Verifica limites do array
+                    {
+                        return array[index];
+                    }
+                    throw new IndexOutOfRangeException($"Índice '{index}' fora dos limites do array '{arrayName}'.");
+                }
+                throw new Exception($"Array '{arrayName}' não declarado.");
             }
-            throw new Exception($"Array '{arrayName}' não declarado.");
-        }
 
-        // Se for expressão aritmética com `terminais`
-        int value = EvaluateTerminais(context.terminais(0));
-        for (int i = 1; i < context.terminais().Length; i++)
-        {
-            string op = context.GetChild(2 * i - 1).GetText(); // Operador: '+' ou '-'
-            int nextValue = EvaluateTerminais(context.terminais(i));
-
-            value = op switch
+            // Se for expressão aritmética com `terminais`
+            int value = EvaluateTerminais(context.terminais(0)); // Primeiro terminal
+            for (int i = 1; i < context.terminais().Length; i++)
             {
-                "+" => value + nextValue,
-                "-" => value - nextValue,
-                _ => throw new NotSupportedException($"Operador aritmético '{op}' não suportado.")
-            };
-        }
+                string op = context.GetChild(2 * i - 1).GetText(); // Operador: '+' ou '-'
+                int nextValue = EvaluateTerminais(context.terminais(i)); // Próximo terminal
 
-        return value;
+                value = op switch
+                {
+                    "+" => value + nextValue,
+                    "-" => value - nextValue,
+                    _ => throw new NotSupportedException($"Operador aritmético '{op}' não suportado.")
+                };
+            }
+
+            return value;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao avaliar expressão: {ex.Message}");
+            throw;
+        }
     }
 
 
     private int EvaluateTerminais(LangGrammarParser.TerminaisContext context)
     {
-        int value = EvaluateFator(context.fator(0));
-        for (int i = 1; i < context.fator().Length; i++)
+        try
         {
-            string op = context.GetChild(2 * i - 1).GetText(); // Operador: '*', '/', '%'
-            int nextValue = EvaluateFator(context.fator(i));
-
-            value = op switch
+            if (context.fator() == null || context.fator().Length == 0)
             {
-                "*" => value * nextValue,
-                "/" => nextValue != 0 ? value / nextValue : throw new Exception("Divisão por zero."),
-                "%" => value % nextValue,
-                _ => throw new NotSupportedException($"Operador '{op}' não suportado.")
-            };
+                throw new Exception("Nenhum fator encontrado na expressão.");
+            }
+
+            // Avalia o primeiro fator
+            int value = EvaluateFator(context.fator(0));
+
+            // Itera pelos fatores subsequentes e aplica os operadores
+            for (int i = 1; i < context.fator().Length; i++)
+            {
+                string op = context.GetChild(2 * i - 1).GetText(); // Operador: '*', '/', '%'
+                int nextValue = EvaluateFator(context.fator(i));
+
+                value = op switch
+                {
+                    "*" => value * nextValue,
+                    "/" => nextValue != 0
+                        ? value / nextValue
+                        : throw new Exception($"Divisão por zero ao avaliar '{value} / {nextValue}'."),
+                    "%" => nextValue != 0
+                        ? value % nextValue
+                        : throw new Exception($"Divisão por zero ao avaliar '{value} % {nextValue}'."),
+                    _ => throw new NotSupportedException($"Operador '{op}' não suportado.")
+                };
+            }
+
+            return value;
         }
-        return value;
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao avaliar terminais: {ex.Message}");
+            throw;
+        }
     }
 
     private int EvaluateFator(LangGrammarParser.FatorContext context)
     {
-        // Negação lógica
-        if (context.NOT() != null)
+        try
         {
-            int value = EvaluateFator(context.fator());
-            return value == 0 ? 1 : 0;
-        }
-
-        // Expressões entre parênteses
-        if (context.expression() != null)
-        {
-            return EvaluateExpression(context.expression());
-        }
-
-        // Avaliação de um número
-        if (context.NUM() != null)
-        {
-            return int.Parse(context.NUM().GetText());
-        }
-
-        // Avaliação de uma variável
-        if (context.VAR() != null)
-        {
-            string varName = context.VAR().GetText();
-            if (_variables.ContainsKey(varName))
+            if (context.NUM() != null) // Verifica se é um número
             {
-                return _variables[varName];
+                return int.Parse(context.NUM().GetText());
             }
-            throw new Exception($"Variável '{varName}' não declarada.");
-        }
 
-        // Caso nenhum dos casos seja válido
-        throw new Exception("Fator inválido.");
+            if (context.VAR() != null) // Verifica se é uma variável
+            {
+                string varName = context.VAR().GetText();
+                if (_variables.TryGetValue(varName, out object? value) && value is int intValue)
+                {
+                    return intValue;
+                }
+                throw new Exception($"Variável '{varName}' não foi inicializada.");
+            }
+
+            throw new Exception($"Fator inválido: {context.GetText()}.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao avaliar fator: {ex.Message}");
+            throw;
+        }
     }
+
+
 
     private bool EvaluateCondition(LangGrammarParser.ExprblocoContext context)
     {
-        if (context == null) return false;
-
-        // Parênteses: Avalia a subexpressão entre parênteses
-        if (context is LangGrammarParser.ParentesisExpressionContext parentesisCtx)
+        try
         {
-            return EvaluateCondition(parentesisCtx.exprbloco());
-        }
-
-        // Negação: Avalia a subexpressão e inverte o resultado
-        if (context is LangGrammarParser.NotExpressionContext notCtx)
-        {
-            return !EvaluateCondition(notCtx.exprbloco());
-        }
-
-        // Operador lógico '&&'
-        if (context is LangGrammarParser.AndExpressionContext andCtx)
-        {
-            return EvaluateCondition(andCtx.exprbloco(0)) && EvaluateCondition(andCtx.exprbloco(1));
-        }
-
-        // Operador lógico '||'
-        if (context is LangGrammarParser.OrExpressionContext orCtx)
-        {
-            return EvaluateCondition(orCtx.exprbloco(0)) || EvaluateCondition(orCtx.exprbloco(1));
-        }
-
-        // Operador relacional
-        if (context is LangGrammarParser.RelationalExpressionContext relCtx)
-        {
-            int left = EvaluateExpression(relCtx.expression(0));
-            if (relCtx.RELOP() != null)
+            if (context == null)
             {
-                int right = EvaluateExpression(relCtx.expression(1));
-                string op = relCtx.RELOP().GetText();
-
-                // Avalia a expressão relacional e retorna como booleano
-                return op switch
-                {
-                    "==" => left == right,
-                    "!=" => left != right,
-                    ">" => left > right,
-                    "<" => left < right,
-                    ">=" => left >= right,
-                    "<=" => left <= right,
-                    _ => throw new NotSupportedException($"Operador relacional '{op}' não suportado")
-                };
+                Console.WriteLine("[DEBUG] Condição nula recebida. Retornando false.");
+                return false;
             }
 
-            // Se não houver operador relacional, verifica se a expressão é verdadeira
-            return left != 0;
+            // Parênteses: Avalia a subexpressão entre parênteses
+            if (context is LangGrammarParser.ParentesisExpressionContext parentesisCtx)
+            {
+                Console.WriteLine("[DEBUG] Avaliando expressão entre parênteses.");
+                return EvaluateCondition(parentesisCtx.exprbloco());
+            }
+
+            // Negação: Avalia a subexpressão e inverte o resultado
+            if (context is LangGrammarParser.NotExpressionContext notCtx)
+            {
+                Console.WriteLine("[DEBUG] Avaliando expressão negada.");
+                return !EvaluateCondition(notCtx.exprbloco());
+            }
+
+            // Operador lógico '&&'
+            if (context is LangGrammarParser.AndExpressionContext andCtx)
+            {
+                Console.WriteLine("[DEBUG] Avaliando expressão lógica AND.");
+                return EvaluateCondition(andCtx.exprbloco(0)) && EvaluateCondition(andCtx.exprbloco(1));
+            }
+
+            // Operador lógico '||'
+            if (context is LangGrammarParser.OrExpressionContext orCtx)
+            {
+                Console.WriteLine("[DEBUG] Avaliando expressão lógica OR.");
+                return EvaluateCondition(orCtx.exprbloco(0)) || EvaluateCondition(orCtx.exprbloco(1));
+            }
+
+            // Operador relacional
+            if (context is LangGrammarParser.RelationalExpressionContext relCtx)
+            {
+                Console.WriteLine("[DEBUG] Avaliando expressão relacional.");
+                int left = EvaluateExpressionSafe(relCtx.expression(0));
+                if (relCtx.RELOP() != null)
+                {
+                    int right = EvaluateExpressionSafe(relCtx.expression(1));
+                    string op = relCtx.RELOP().GetText();
+
+                    // Avalia a expressão relacional e retorna como booleano
+                    return op switch
+                    {
+                        "==" => left == right,
+                        "!=" => left != right,
+                        ">" => left > right,
+                        "<" => left < right,
+                        ">=" => left >= right,
+                        "<=" => left <= right,
+                        _ => throw new NotSupportedException($"Operador relacional '{op}' não suportado.")
+                    };
+                }
+
+                // Se não houver operador relacional, verifica se a expressão é verdadeira
+                Console.WriteLine("[DEBUG] Avaliando expressão relacional sem operador. Verificando se é diferente de zero.");
+                return left != 0;
+            }
+
+            // Caso nenhum contexto seja reconhecido
+            throw new Exception($"[DEBUG] Condição inválida recebida: {context.GetText()}.");
         }
-
-        throw new Exception("Condição inválida.");
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Erro ao avaliar condição: {ex.Message}");
+            return false; // Retorna falso em caso de erro para evitar loops infinitos
+        }
     }
 
-    private int EvaluateConditionAsInt(LangGrammarParser.ExprblocoContext context)
+    // Método auxiliar para capturar erros no EvaluateExpression
+    private int EvaluateExpressionSafe(LangGrammarParser.ExpressionContext context)
     {
-        return EvaluateCondition(context) ? 1 : 0;
+        try
+        {
+            return EvaluateExpression(context);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Erro ao avaliar expressão: {ex.Message}");
+            return 0; // Retorna 0 em caso de erro
+        }
     }
+    private void ProcessarLinha(LangGrammarParser.LinhasContext linha)
+    {
+        if (linha.atrib() != null)
+        {
+            ExitAtrib(linha.atrib());
+        }
+        else if (linha.output() != null)
+        {
+            ExitOutput(linha.output());
+        }
+        else
+        {
+            Console.WriteLine("Linha não reconhecida.");
+        }
+    }
+
 
     private void ExecuteBlock(LangGrammarParser.BlocoContext context)
     {
@@ -830,12 +1097,5 @@ public class LangGrammarCustomListener : LangGrammarBaseListener{
         }
     }
 
-
-    private string ReplaceFirst(string text, string search, string replace)
-    {
-        int pos = text.IndexOf(search);
-        if (pos < 0) return text;
-        return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
-    }
 
 }
