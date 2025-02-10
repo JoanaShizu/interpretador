@@ -1,5 +1,0 @@
-C:\Users\Joana\Downloads\interpretador\Ferramenta\obj\Debug\net6.0\Ferramenta.csproj.AssemblyReference.cache
-C:\Users\Joana\Downloads\interpretador\Ferramenta\obj\Debug\net6.0\Ferramenta.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Joana\Downloads\interpretador\Ferramenta\obj\Debug\net6.0\Ferramenta.AssemblyInfoInputs.cache
-C:\Users\Joana\Downloads\interpretador\Ferramenta\obj\Debug\net6.0\Ferramenta.AssemblyInfo.cs
-C:\Users\Joana\Downloads\interpretador\Ferramenta\obj\Debug\net6.0\Ferramenta.csproj.CoreCompileInputs.cache
