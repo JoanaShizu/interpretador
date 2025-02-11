@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 
@@ -6,16 +7,27 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Código fonte a ser analisado (adicione seu código aqui)
-        string code = @"
-            int main(void) {
-                
-                printf(""Resultado: %d"", 8);
-            }
-        ";
+        // Verifica se o arquivo foi passado como argumento
+        if (args.Length != 1)
+        {
+            Console.WriteLine("Uso: ferramenta.exe codigo_fonte.c");
+            return;
+        }
+
+        string filePath = args[0];
+
+        // Verifica se o arquivo existe
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine($"Erro: O arquivo '{filePath}' não foi encontrado.");
+            return;
+        }
 
         try
         {
+            // Lê o conteúdo do arquivo
+            string code = File.ReadAllText(filePath);
+
             // Cria o Lexer para gerar os tokens
             var inputStream = new AntlrInputStream(code);
             var lexer = new LangGrammarLexer(inputStream);

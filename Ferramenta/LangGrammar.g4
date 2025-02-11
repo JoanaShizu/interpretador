@@ -1,121 +1,216 @@
+
 grammar LangGrammar;
 
 // Regras principais
-programa: cabecalho corpo;
+programa: cabecalho corpo EOF;
 
 cabecalho: (includeDecl | defineDecl | comentario)*;
 
-includeDecl: INCLUDE LIB EOL;
-defineDecl: DEFINE VAR expression? EOL;
+includeDecl: INCLUDE LIB;
+defineDecl: DEFINE VAR expression?;
 
-corpo: mainFunction (functionDecl | structDecl | unionDecl | comentario)*;
+corpo: (structDecl | mainFunction | functionDecl | unionDecl | comentario)*;
 
-mainFunction: INT MAIN OPEN_PAREN VOID CLOSE_PAREN bloco;
+mainFunction: INT MAIN '(' (VOID | ) ')' bloco ;
 
-bloco: OPEN_BRACE linhas* CLOSE_BRACE;
+bloco: '{' linhas* '}';
 
-linhas: comentario
-      | atrib EOL
-      | arrayDecl EOL
-      | pointerDecl EOL
-      | pointerAssign EOL
-      | pointerDereference EOL
-      | functionCall EOL
-      | structAccess EOL
-      | unionAccess EOL
-      | in EOL
-      | out EOL
-      | getsStmt EOL
-      | putsStmt EOL
-      | decisionFunc
-      | switchCase
-      | loopFunc
-      | doWhileLoop
-      | casting EOL
-      | typeof EOL
-      | ternary EOL
-      | returnStmt EOL;
+// Declaração de struct
+structDecl
+    : 'struct' VAR '{' structMember* '}' ';'
+    ;
+
+structInstDecl
+    : 'struct' VAR VAR ('=' structLiteral)? ';'
+    ;
+
+// Membros de struct
+structMember
+    : tipo VAR (CO (CONSTANT | NUM) CC)? ';'
+    ;
+    
+structAccess: VAR DOT VAR ASSIGN expression ';'; 
+
+structFieldAccess
+    : VAR DOT VAR
+    ;
+
+
+linhas
+
+    : unionAccess
+    | structAccess
+    | functionCall
+    | atrib
+    | comentario
+    | arrayDecl
+    | pointerDecl
+    | pointerAssign
+    | pointerDereference
+    | input
+    | output
+    | getsStmt
+    | putsStmt
+    | decisionFunc
+    | switchCase
+    | loopFunc
+    | doWhileLoop
+    | casting
+    | typeof
+    | ternary
+    | returnStmt
+    ;
 
 // Regras de comentário
 comentario: COMMENTLINE | COMMENTBLOCK;
 
 // Declarações de variáveis
-atrib: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '=' expression
-     | (INT | FLOAT | CHAR | DOUBLE | VOID) VAR
-     | VAR '=' expression;
+atrib: tipo VAR ('=' expression)? ';'
+     | VAR '=' expression ';' 
+     | structAccess
+     ;
 
-arrayDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '[' NUM ']' ('=' '{' elementosArray '}')?;
-elementosArray: expression (',' expression)*;
+arrayDecl
+    : tipo VAR CO size CC '=' STR ';'
+    | tipo VAR CO size CC '=' CD elementosArray CE ';'
+    | tipo VAR CO size CC ';'
+    ;
+
+size
+    : NUM
+    | /* vazio */
+    ;
+
+elementosArray: expression (COMMA expression)*;
+
+arrayAccess: VAR '[' expression ']';
 
 // Declaração de ponteiros
-pointerDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) '*' VAR;
-pointerAssign: VAR '=' '&' VAR;
-pointerDereference: '*' VAR '=' expression;
+pointerDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) '*' VAR ';';
+pointerAssign: VAR '=' '&' VAR ';';
+pointerDereference: '*' VAR '=' expression ';';
 
 // Entrada e saída
-in: SCAN '(' FORMAT ',' '&' VAR ')';
-out: PRINT '(' STR (',' expression)* ')' EOL;
-getsStmt: GETS '(' VAR ')';
-putsStmt: PUTS '(' VAR ')';
+input: 'scanf' '('FORMAT COMMA '&' VAR ')' ';';
+output
+    : 'printf' '(' STR (COMMA arg+=argument)* ')' ';'
+    | STR (COMMA arg+=argument)*
+    ;
+
+getsStmt: GETS '(' VAR ')' ';'; 
+putsStmt: PUTS '(' VAR ')' ';';
+
+structLiteral: CD expression (COMMA expression)* CE;
 
 // Declarações de funções
-functionDecl: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR '(' parametros? ')' bloco;
+functionDecl: tipo VAR '(' parametros? ')' blocoFunction ;
 
-// Chamada de funções
-functionCall: VAR '(' argumentos? ')';
-parametros: (INT | FLOAT | CHAR | DOUBLE | VOID) VAR (',' (INT | FLOAT | CHAR | DOUBLE | VOID) VAR)*;
-argumentos: expression (',' expression)*;
+functionCall: VAR PD argumentos? PE ;
+blocoFunction: '{' linhas+ '}' ;
 
-// Declaração de estruturas
-structDecl: STRUCT VAR '{' structFields '}' EOL;
-structFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR EOL)+;
+parametros: tipo VAR (COMMA tipo VAR)*;
+tipo: INT 
+    | FLOAT 
+    | CHAR 
+    | DOUBLE 
+    | VOID 
+    | 'struct' VAR 
+    | 'union' VAR 
+    | VAR
+    ;
+
+argumentos: expression (COMMA expression)*;
 
 // Declaração de uniões
-unionDecl: UNION VAR '{' unionFields '}' EOL;
-unionFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR EOL)+;
+unionDecl: UNION VAR '{' unionFields '}' ';';
+unionFields: ((INT | FLOAT | CHAR | DOUBLE | VOID) VAR ';')+;
 
 // Acesso a campos de estruturas e uniões
-structAccess: VAR DOT VAR '=' expression
-            | VAR DOT VAR;
-
-unionAccess: VAR DOT VAR '=' expression
-           | VAR DOT VAR;
+unionAccess: VAR '.' VAR ('=' expression)? ';';
 
 // Controle de fluxo
-decisionFunc: IF '(' exprbloco ')' bloco | IF '(' exprbloco ')' bloco ELSE bloco;
-switchCase: SWITCH '(' VAR ')' '{' caseBlock+ defaultBlock? '}';
-caseBlock: CASE NUM ':' linhas* BREAK EOL;
-defaultBlock: DEFAULT ':' linhas* BREAK EOL;
+decisionFunc
+    : IF '(' exprbloco ')' bloco (ELSE IF '(' exprbloco ')' bloco)* (ELSE bloco)?;
 
-loopFunc: WHILE '(' exprbloco ')' bloco | FOR '(' atrib EOL exprbloco EOL atrib ')' bloco;
-doWhileLoop: DO bloco WHILE '(' exprbloco ')' EOL;
+switchCase: SWITCH '(' VAR ')' '{' caseBlock+ defaultBlock? '}';
+
+caseBlock: CASE NUM ':' linhas* BREAK ';';
+defaultBlock: DEFAULT ':' linhas* BREAK ';';
+
+loopFunc: whileLoop | forLoop;
+
+whileLoop: WHILE '(' exprbloco ')' bloco;
+forLoop
+    : FOR '(' (atrib | ';') exprbloco? ';' (atrib | expression) ')' bloco
+    ;
+
+doWhileLoop: DO bloco WHILE '(' exprbloco ')' ';';
 
 // Expressões
-expression: terminais ('+' terminais | '-' terminais)*;
-terminais: fator ('*' fator | '/' fator | '%' fator)*;
-fator: '(' expression ')' | NUM | VAR | STR | CHAR | VAR SOMA SOMA | VAR SUB SUB;
+expression
+    : structLiteral
+    | terminais (('+' | '-') terminais)*
+    | arrayAccess
+    ;
 
-// Expressões condicionais
-exprbloco: expression (RELOP expression)?
-         | exprbloco AND exprbloco
-         | exprbloco OR exprbloco
-         | NOT exprbloco;
+arrayUpdate
+    : VAR '[' expression ']' '=' expression
+    ;
+
+terminais: fator ((MULT | DIV | MOD) fator)*;
+
+
+fator: '!' fator
+    | '(' expression ')'
+    | arrayAccess          // nova alternativa para acesso a arrays
+    | structFieldAccess 
+    | structAccess         // nova alternativa para acesso a campos de struct
+    | NUM
+    | CONSTANT       // Opcional: para tratar números com ponto
+    | VAR
+    | STR
+    | CHARLIT        // Literais de caractere
+    | VAR '++'
+    | VAR '--'
+    ;
+    
+argument
+    : expression
+    | exprbloco
+    | arrayAccess
+    | structFieldAccess
+    ;
+
+
+// Expressões condicionais com suporte para operadores lógicos
+exprbloco
+    : '(' exprbloco ')'                    # ParentesisExpression
+    | '!' exprbloco                        # NotExpression
+    | exprbloco '&&' exprbloco             # AndExpression
+    | exprbloco '||' exprbloco             # OrExpression
+    | expression (RELOP expression)?      # RelationalExpression
+    ;
+
+
 
 // Casting e typeof
-casting: '(' (INT | FLOAT | CHAR | DOUBLE | VOID) ')' VAR;
-typeof: TYPEOF '(' VAR ')';
+casting: '(' (INT | FLOAT | CHAR | DOUBLE | VOID) ')' VAR ';';
+typeof: TYPEOF '(' VAR ')' ';';
 
 // Operador ternário
-ternary: exprbloco '?' bloco ':' bloco;
+ternary: exprbloco '?' expression ':' expression ';';
 
 // Retorno
-returnStmt: RETURN expression | RETURN;
+returnStmt: RETURN expression ';';
 
 // Tokens
+LIB : '<' [a-zA-Z_][a-zA-Z0-9_]* ('.' [a-zA-Z0-9_]+)* '>' 
+    | '"' [a-zA-Z_][a-zA-Z0-9_]* ('.' [a-zA-Z0-9_]+)* '"';
+
+ //Para aceitar bibliotecas locais 
 INCLUDE: '#include';
 DEFINE: '#define';
-EOL: ';';
-LIB: '<' [a-zA-Z_][a-zA-Z0-9_]* '>';
+RELOP: '==' | '!=' | '<' | '<=' | '>' | '>=';
 COMMENTLINE: '//' ~[\r\n]* -> skip;
 COMMENTBLOCK: '/*' .*? '*/' -> skip;
 
@@ -125,12 +220,8 @@ CHAR: 'char';
 DOUBLE: 'double';
 VOID: 'void';
 MAIN: 'main';
-
-VAR: [_a-zA-Z][_a-zA-Z0-9]*;
-NUM: [0-9]+;
-STR: '"' ~[\n"]* '"';
-FORMAT: '"%' [a-zA-Z] '"';
-
+COMMA: ',';
+PV: ';';
 PLUS: '+';
 MINUS: '-';
 MULT: '*';
@@ -139,16 +230,16 @@ MOD: '%';
 AND: '&&';
 OR: '||';
 NOT: '!';
-RELOP: '==' | '!=' | '<' | '<=' | '>' | '>=';
+CD: '{';
+CE: '}';
+PD: '(';
+PE: ')';
+CO: '[';
+CC: ']';
 SOMA: '++';
 SUB: '--';
 ASSIGN: '=';
 DOT: '.';
-OPEN_PAREN: '(';
-CLOSE_PAREN: ')';
-OPEN_BRACE: '{';
-CLOSE_BRACE: '}';
-VIR: ',';
 RETURN: 'return';
 SCAN: 'scanf';
 PRINT: 'printf';
@@ -167,3 +258,10 @@ FOR: 'for';
 DO: 'do';
 TYPEOF: 'typeof';
 WS: [ \t\r\n]+ -> skip;
+VAR: [_a-zA-Z][_a-zA-Z0-9]*;
+NUM: [0-9]+;
+CONSTANT: [0-9]+ '.' [0-9]+;
+CHARLIT : '\'' ( ~[\\'\r\n] | '\\' . ) '\'';
+
+FORMAT: '"%' [dcsfxe] '"';
+STR: '"' ~[\n"]* '"';

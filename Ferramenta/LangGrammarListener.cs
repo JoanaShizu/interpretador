@@ -101,6 +101,56 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitBloco([NotNull] LangGrammarParser.BlocoContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.structDecl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterStructDecl([NotNull] LangGrammarParser.StructDeclContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.structDecl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitStructDecl([NotNull] LangGrammarParser.StructDeclContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.structInstDecl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterStructInstDecl([NotNull] LangGrammarParser.StructInstDeclContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.structInstDecl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitStructInstDecl([NotNull] LangGrammarParser.StructInstDeclContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.structMember"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterStructMember([NotNull] LangGrammarParser.StructMemberContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.structMember"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitStructMember([NotNull] LangGrammarParser.StructMemberContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.structAccess"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterStructAccess([NotNull] LangGrammarParser.StructAccessContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.structAccess"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitStructAccess([NotNull] LangGrammarParser.StructAccessContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.structFieldAccess"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterStructFieldAccess([NotNull] LangGrammarParser.StructFieldAccessContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.structFieldAccess"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitStructFieldAccess([NotNull] LangGrammarParser.StructFieldAccessContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.linhas"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -141,6 +191,16 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitArrayDecl([NotNull] LangGrammarParser.ArrayDeclContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.size"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterSize([NotNull] LangGrammarParser.SizeContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.size"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitSize([NotNull] LangGrammarParser.SizeContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.elementosArray"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -150,6 +210,16 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitElementosArray([NotNull] LangGrammarParser.ElementosArrayContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.arrayAccess"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterArrayAccess([NotNull] LangGrammarParser.ArrayAccessContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.arrayAccess"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitArrayAccess([NotNull] LangGrammarParser.ArrayAccessContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.pointerDecl"/>.
 	/// </summary>
@@ -181,25 +251,25 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitPointerDereference([NotNull] LangGrammarParser.PointerDereferenceContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.in"/>.
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.input"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterIn([NotNull] LangGrammarParser.InContext context);
+	void EnterInput([NotNull] LangGrammarParser.InputContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.in"/>.
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.input"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitIn([NotNull] LangGrammarParser.InContext context);
+	void ExitInput([NotNull] LangGrammarParser.InputContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.out"/>.
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.output"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterOut([NotNull] LangGrammarParser.OutContext context);
+	void EnterOutput([NotNull] LangGrammarParser.OutputContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.out"/>.
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.output"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitOut([NotNull] LangGrammarParser.OutContext context);
+	void ExitOutput([NotNull] LangGrammarParser.OutputContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.getsStmt"/>.
 	/// </summary>
@@ -221,6 +291,16 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitPutsStmt([NotNull] LangGrammarParser.PutsStmtContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.structLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterStructLiteral([NotNull] LangGrammarParser.StructLiteralContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.structLiteral"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitStructLiteral([NotNull] LangGrammarParser.StructLiteralContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.functionDecl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -241,6 +321,16 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitFunctionCall([NotNull] LangGrammarParser.FunctionCallContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.blocoFunction"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterBlocoFunction([NotNull] LangGrammarParser.BlocoFunctionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.blocoFunction"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitBlocoFunction([NotNull] LangGrammarParser.BlocoFunctionContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.parametros"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -251,6 +341,16 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitParametros([NotNull] LangGrammarParser.ParametrosContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.tipo"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterTipo([NotNull] LangGrammarParser.TipoContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.tipo"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitTipo([NotNull] LangGrammarParser.TipoContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.argumentos"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -260,26 +360,6 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitArgumentos([NotNull] LangGrammarParser.ArgumentosContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.structDecl"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterStructDecl([NotNull] LangGrammarParser.StructDeclContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.structDecl"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitStructDecl([NotNull] LangGrammarParser.StructDeclContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.structFields"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterStructFields([NotNull] LangGrammarParser.StructFieldsContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.structFields"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitStructFields([NotNull] LangGrammarParser.StructFieldsContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.unionDecl"/>.
 	/// </summary>
@@ -300,16 +380,6 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitUnionFields([NotNull] LangGrammarParser.UnionFieldsContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.structAccess"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterStructAccess([NotNull] LangGrammarParser.StructAccessContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.structAccess"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitStructAccess([NotNull] LangGrammarParser.StructAccessContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.unionAccess"/>.
 	/// </summary>
@@ -371,6 +441,26 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitLoopFunc([NotNull] LangGrammarParser.LoopFuncContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.whileLoop"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterWhileLoop([NotNull] LangGrammarParser.WhileLoopContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.whileLoop"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitWhileLoop([NotNull] LangGrammarParser.WhileLoopContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.forLoop"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterForLoop([NotNull] LangGrammarParser.ForLoopContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.forLoop"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitForLoop([NotNull] LangGrammarParser.ForLoopContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.doWhileLoop"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -390,6 +480,16 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitExpression([NotNull] LangGrammarParser.ExpressionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.arrayUpdate"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterArrayUpdate([NotNull] LangGrammarParser.ArrayUpdateContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.arrayUpdate"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitArrayUpdate([NotNull] LangGrammarParser.ArrayUpdateContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.terminais"/>.
 	/// </summary>
@@ -411,15 +511,75 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitFator([NotNull] LangGrammarParser.FatorContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.exprbloco"/>.
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.argument"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterExprbloco([NotNull] LangGrammarParser.ExprblocoContext context);
+	void EnterArgument([NotNull] LangGrammarParser.ArgumentContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.exprbloco"/>.
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.argument"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitExprbloco([NotNull] LangGrammarParser.ExprblocoContext context);
+	void ExitArgument([NotNull] LangGrammarParser.ArgumentContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>RelationalExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterRelationalExpression([NotNull] LangGrammarParser.RelationalExpressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>RelationalExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitRelationalExpression([NotNull] LangGrammarParser.RelationalExpressionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>ParentesisExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterParentesisExpression([NotNull] LangGrammarParser.ParentesisExpressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>ParentesisExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitParentesisExpression([NotNull] LangGrammarParser.ParentesisExpressionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>AndExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterAndExpression([NotNull] LangGrammarParser.AndExpressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>AndExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitAndExpression([NotNull] LangGrammarParser.AndExpressionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>NotExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterNotExpression([NotNull] LangGrammarParser.NotExpressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>NotExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitNotExpression([NotNull] LangGrammarParser.NotExpressionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>OrExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterOrExpression([NotNull] LangGrammarParser.OrExpressionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>OrExpression</c>
+	/// labeled alternative in <see cref="LangGrammarParser.exprbloco"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitOrExpression([NotNull] LangGrammarParser.OrExpressionContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.casting"/>.
 	/// </summary>
