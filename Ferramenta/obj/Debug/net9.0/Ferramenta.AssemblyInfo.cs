@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Ferramenta")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+399f603457cb4558b7988161271862ce7a911703")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a86a3277b26c79423cc3d4433c8fc18bd07cc7aa")]
 [assembly: System.Reflection.AssemblyProductAttribute("Ferramenta")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Ferramenta")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

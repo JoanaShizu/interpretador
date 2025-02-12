@@ -4,14 +4,18 @@ grammar LangGrammar;
 // Regras principais
 programa: cabecalho corpo EOF;
 
-cabecalho: (includeDecl | defineDecl | comentario)*;
+cabecalho: includeDecl* (defineDecl | comentario)*;
 
-includeDecl: INCLUDE LIB;
-defineDecl: DEFINE VAR expression?;
+includeDecl: '#' 'include' BIB;
+defineDecl: '#' 'define' VAR (NUM | CONSTANT | CHARLIT);
 
-corpo: (structDecl | mainFunction | functionDecl | unionDecl | comentario)*;
+corpo: (structDecl | functionDecl | mainFunction | unionDecl | comentario)*;
 
 mainFunction: INT MAIN '(' (VOID | ) ')' bloco ;
+
+functionDecl: tipo VAR '(' parametros? ')' functionblock;
+
+functionblock: '{' linhas* '}';
 
 bloco: '{' linhas* '}';
 
@@ -35,12 +39,10 @@ structFieldAccess
     : VAR DOT VAR
     ;
 
-
 linhas
-
     : unionAccess
     | structAccess
-    | functionCall
+    | callFunction
     | atrib
     | comentario
     | arrayDecl
@@ -69,6 +71,8 @@ atrib: tipo VAR ('=' expression)? ';'
      | VAR '=' expression ';' 
      | structAccess
      ;
+
+callFunction: VAR '(' (expression(COMMA expression)*)? ')' ';' ;
 
 arrayDecl
     : tipo VAR CO size CC '=' STR ';'
@@ -101,12 +105,6 @@ getsStmt: GETS '(' VAR ')' ';';
 putsStmt: PUTS '(' VAR ')' ';';
 
 structLiteral: CD expression (COMMA expression)* CE;
-
-// Declarações de funções
-functionDecl: tipo VAR '(' parametros? ')' blocoFunction ;
-
-functionCall: VAR PD argumentos? PE ;
-blocoFunction: '{' linhas+ '}' ;
 
 parametros: tipo VAR (COMMA tipo VAR)*;
 tipo: INT 
@@ -151,7 +149,10 @@ expression
     : structLiteral
     | terminais (('+' | '-') terminais)*
     | arrayAccess
+    | callFunction
+    | structFieldAccess
     ;
+
 
 arrayUpdate
     : VAR '[' expression ']' '=' expression
@@ -201,18 +202,15 @@ typeof: TYPEOF '(' VAR ')' ';';
 ternary: exprbloco '?' expression ':' expression ';';
 
 // Retorno
-returnStmt: RETURN expression ';';
+returnStmt: 'return' (expression)? ';';
 
 // Tokens
-LIB : '<' [a-zA-Z_][a-zA-Z0-9_]* ('.' [a-zA-Z0-9_]+)* '>' 
-    | '"' [a-zA-Z_][a-zA-Z0-9_]* ('.' [a-zA-Z0-9_]+)* '"';
-
- //Para aceitar bibliotecas locais 
-INCLUDE: '#include';
-DEFINE: '#define';
+//LIB: [a-zA-Z_][a-zA-Z0-9_]* '.' [a-zA-Z_][a-zA-Z0-9_]*;
 RELOP: '==' | '!=' | '<' | '<=' | '>' | '>=';
-COMMENTLINE: '//' ~[\r\n]* -> skip;
-COMMENTBLOCK: '/*' .*? '*/' -> skip;
+COMMENTLINE: '//' ~[\r\n]* ;
+COMMENTBLOCK: '/*' .*? '*/' ;
+BIB: '<' (~[>])+ '>';
+
 
 INT: 'int';
 FLOAT: 'float';
@@ -236,6 +234,7 @@ PD: '(';
 PE: ')';
 CO: '[';
 CC: ']';
+//BIB: '<' LIB '>';
 SOMA: '++';
 SUB: '--';
 ASSIGN: '=';

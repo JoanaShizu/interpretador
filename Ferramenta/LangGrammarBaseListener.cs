@@ -108,6 +108,30 @@ public partial class LangGrammarBaseListener : ILangGrammarListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitMainFunction([NotNull] LangGrammarParser.MainFunctionContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.functionDecl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterFunctionDecl([NotNull] LangGrammarParser.FunctionDeclContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.functionDecl"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitFunctionDecl([NotNull] LangGrammarParser.FunctionDeclContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.functionblock"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterFunctionblock([NotNull] LangGrammarParser.FunctionblockContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.functionblock"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitFunctionblock([NotNull] LangGrammarParser.FunctionblockContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.bloco"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -215,6 +239,18 @@ public partial class LangGrammarBaseListener : ILangGrammarListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitAtrib([NotNull] LangGrammarParser.AtribContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.callFunction"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterCallFunction([NotNull] LangGrammarParser.CallFunctionContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.callFunction"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitCallFunction([NotNull] LangGrammarParser.CallFunctionContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.arrayDecl"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -359,42 +395,6 @@ public partial class LangGrammarBaseListener : ILangGrammarListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitStructLiteral([NotNull] LangGrammarParser.StructLiteralContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.functionDecl"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterFunctionDecl([NotNull] LangGrammarParser.FunctionDeclContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.functionDecl"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitFunctionDecl([NotNull] LangGrammarParser.FunctionDeclContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.functionCall"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterFunctionCall([NotNull] LangGrammarParser.FunctionCallContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.functionCall"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitFunctionCall([NotNull] LangGrammarParser.FunctionCallContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.blocoFunction"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterBlocoFunction([NotNull] LangGrammarParser.BlocoFunctionContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.blocoFunction"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitBlocoFunction([NotNull] LangGrammarParser.BlocoFunctionContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.parametros"/>.
 	/// <para>The default implementation does nothing.</para>

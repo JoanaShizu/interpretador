@@ -8,8 +8,8 @@ int main() {
     int num = atoi(strInt);
     float dnum = atof(strFloat);
 
-    printf("String strInt convertida para int: %d\n", strInt, num);
-    printf("String strFloat convertida para float: %f\n", strFloat, dnum);
+    printf("String strInt convertida para int: %d\n", num);
+    printf("String strFloat convertida para float: %f\n", dnum);
 
     return 0;
 }

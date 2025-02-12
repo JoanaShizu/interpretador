@@ -91,6 +91,26 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitMainFunction([NotNull] LangGrammarParser.MainFunctionContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.functionDecl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterFunctionDecl([NotNull] LangGrammarParser.FunctionDeclContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.functionDecl"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitFunctionDecl([NotNull] LangGrammarParser.FunctionDeclContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.functionblock"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterFunctionblock([NotNull] LangGrammarParser.FunctionblockContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.functionblock"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitFunctionblock([NotNull] LangGrammarParser.FunctionblockContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.bloco"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -180,6 +200,16 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitAtrib([NotNull] LangGrammarParser.AtribContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LangGrammarParser.callFunction"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterCallFunction([NotNull] LangGrammarParser.CallFunctionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LangGrammarParser.callFunction"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitCallFunction([NotNull] LangGrammarParser.CallFunctionContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.arrayDecl"/>.
 	/// </summary>
@@ -300,36 +330,6 @@ public interface ILangGrammarListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitStructLiteral([NotNull] LangGrammarParser.StructLiteralContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.functionDecl"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterFunctionDecl([NotNull] LangGrammarParser.FunctionDeclContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.functionDecl"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitFunctionDecl([NotNull] LangGrammarParser.FunctionDeclContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.functionCall"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterFunctionCall([NotNull] LangGrammarParser.FunctionCallContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.functionCall"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitFunctionCall([NotNull] LangGrammarParser.FunctionCallContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="LangGrammarParser.blocoFunction"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterBlocoFunction([NotNull] LangGrammarParser.BlocoFunctionContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="LangGrammarParser.blocoFunction"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitBlocoFunction([NotNull] LangGrammarParser.BlocoFunctionContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LangGrammarParser.parametros"/>.
 	/// </summary>
